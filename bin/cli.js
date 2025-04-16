@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env node --no-warnings=ExperimentalWarning
 
 const path = require('path');
 const commandLineArgs = require('command-line-args');

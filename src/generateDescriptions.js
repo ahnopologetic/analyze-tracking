@@ -5,7 +5,7 @@ const { z } = require('zod');
 const { zodResponseFormat } = require('openai/helpers/zod');
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || 'undefined',
 });
 const model = 'gpt-4o-mini';
 

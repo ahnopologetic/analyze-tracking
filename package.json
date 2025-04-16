@@ -1,6 +1,6 @@
 {
   "name": "@flisk/analyze-tracking",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Analyzes tracking code in a project and generates data schemas",
   "main": "src/index.js",
   "bin": {
@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/fliskdata/analyze-tracking#readme",
   "dependencies": {
+    "@ruby/prism": "^1.4.0",
     "@typescript-eslint/parser": "^8.1.0",
     "acorn": "^8.12.1",
     "acorn-jsx": "^5.3.2",

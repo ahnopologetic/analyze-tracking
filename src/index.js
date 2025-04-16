@@ -4,7 +4,7 @@ const { generateYamlSchema } = require('./yamlGenerator');
 const { generateDescriptions } = require('./generateDescriptions');
 
 async function run(targetDir, outputPath, customFunction, customSourceDetails, generateDescription) {
-  let events = analyzeDirectory(targetDir, customFunction);
+  let events = await analyzeDirectory(targetDir, customFunction);
   if (generateDescription) {
     events = await generateDescriptions(events, targetDir);
   }

@@ -18,12 +18,18 @@ function getAllFiles(dirPath, arrayOfFiles = []) {
       }
     }
 
+    // Skip hidden files and directories
+    if (file.startsWith('.')) return
+
+    // Skip common directories we don't want to analyze
+    if (file === 'node_modules') return
+    if (file === 'coverage') return
+    if (file === 'temp') return
+    if (file === 'tmp') return
+
     if (stats.isDirectory()) {
-      if (file === 'node_modules') {
-        return; // Ignore the node_modules directory
-      }
       arrayOfFiles = getAllFiles(fullPath, arrayOfFiles);
-    } else if (/\.((j|t)sx?)$/.test(file)) {
+    } else {
       arrayOfFiles.push(fullPath);
     }
   });

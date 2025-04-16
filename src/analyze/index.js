@@ -1,10 +1,11 @@
+const path = require('path');
+const ts = require('typescript');
+const { getAllFiles } = require('../fileProcessor');
 const { analyzeJsFile } = require('./analyzeJsFile');
 const { analyzeTsFile } = require('./analyzeTsFile');
-const { getAllFiles } = require('../fileProcessor');
-const ts = require('typescript');
-const path = require('path');
+const { analyzeRubyFile } = require('./analyzeRubyFile');
 
-function analyzeDirectory(dirPath, customFunction) {
+async function analyzeDirectory(dirPath, customFunction) {
   const files = getAllFiles(dirPath);
   const allEvents = {};
 
@@ -14,12 +15,26 @@ function analyzeDirectory(dirPath, customFunction) {
     module: ts.ModuleKind.CommonJS,
   });
 
-  files.forEach((file) => {
+  for (const file of files) {
+    let events = [];
+
+    const isJsFile = /\.(jsx?)$/.test(file);
     const isTsFile = /\.(tsx?)$/.test(file);
-    const events = isTsFile ? analyzeTsFile(file, program, customFunction) : analyzeJsFile(file, customFunction);
+    const isRubyFile = /\.(rb|ru|rake|gemspec)$/.test(file);
+
+    if (isJsFile) {
+      events = analyzeJsFile(file, customFunction);
+    } else if (isTsFile) {
+      events = analyzeTsFile(file, program, customFunction);
+    } else if (isRubyFile) {
+      events = await analyzeRubyFile(file);
+    } else {
+      console.info(`Skipping file ${file} because it is not a supported file type`);
+      continue;
+    }
 
     events.forEach((event) => {
-      const relativeFilePath = path.relative(dirPath, event.filePath); // Calculate relative path
+      const relativeFilePath = path.relative(dirPath, event.filePath);
 
       if (!allEvents[event.eventName]) {
         allEvents[event.eventName] = {
@@ -45,7 +60,7 @@ function analyzeDirectory(dirPath, customFunction) {
         };
       }
     });
-  });
+  }
 
   return allEvents;
 }
