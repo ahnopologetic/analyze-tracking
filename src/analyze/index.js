@@ -6,11 +6,11 @@ const { analyzeTsFile } = require('./analyzeTsFile');
 const { analyzeRubyFile } = require('./analyzeRubyFile');
 
 async function analyzeDirectory(dirPath, customFunction) {
-  const files = getAllFiles(dirPath);
   const allEvents = {};
 
+  const files = getAllFiles(dirPath);
   const tsFiles = files.filter(file => /\.(tsx?)$/.test(file));
-  const program = ts.createProgram(tsFiles, {
+  const tsProgram = ts.createProgram(tsFiles, {
     target: ts.ScriptTarget.ESNext,
     module: ts.ModuleKind.CommonJS,
   });
@@ -20,12 +20,12 @@ async function analyzeDirectory(dirPath, customFunction) {
 
     const isJsFile = /\.(jsx?)$/.test(file);
     const isTsFile = /\.(tsx?)$/.test(file);
-    const isRubyFile = /\.(rb|ru|rake|gemspec)$/.test(file);
+    const isRubyFile = /\.(rb)$/.test(file);
 
     if (isJsFile) {
       events = analyzeJsFile(file, customFunction);
     } else if (isTsFile) {
-      events = analyzeTsFile(file, program, customFunction);
+      events = analyzeTsFile(file, tsProgram, customFunction);
     } else if (isRubyFile) {
       events = await analyzeRubyFile(file);
     } else {

@@ -26,6 +26,7 @@ function getAllFiles(dirPath, arrayOfFiles = []) {
     if (file === 'coverage') return
     if (file === 'temp') return
     if (file === 'tmp') return
+    if (file === 'log') return
 
     if (stats.isDirectory()) {
       arrayOfFiles = getAllFiles(fullPath, arrayOfFiles);
