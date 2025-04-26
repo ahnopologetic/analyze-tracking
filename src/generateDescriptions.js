@@ -1,13 +1,14 @@
 const fs = require('fs');
 const path = require('path');
-const OpenAI = require('openai');
 const { z } = require('zod');
-const { zodResponseFormat } = require('openai/helpers/zod');
+const { PromptTemplate } = require('@langchain/core/prompts');
+const { ChatOpenAI } = require('@langchain/openai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || 'undefined',
+const model = new ChatOpenAI({
+  modelName: 'gpt-4o-mini',
+  temperature: 0,
+  openAIApiKey: process.env.OPENAI_API_KEY || 'undefined',
 });
-const model = 'gpt-4o-mini';
 
 function createPrompt(eventName, properties, implementations, codebaseDir) {
   let prompt = `Event Name: "${eventName}"\n\n`;
@@ -109,24 +110,20 @@ function createEventDescriptionSchema(properties) {
 
 async function sendPromptToLLM(prompt, schema) {
   try {
-    const completion = await openai.beta.chat.completions.parse({
-      model,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert at structured data extraction. Generate detailed descriptions for the following analytics event, its properties, and implementations.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      response_format: zodResponseFormat(schema, 'event_description'),
+    const promptTemplate = new PromptTemplate({
+      template: `You are an expert at structured data extraction. Generate detailed descriptions for the following analytics event, its properties, and implementations.\n{input}`,
+      inputVariables: ['input'],
     });
 
+    const formattedPrompt = await promptTemplate.format({
+      input: prompt,
+    });
+
+    const structuredModel = model.withStructuredOutput(schema);
+    const response = await structuredModel.invoke(formattedPrompt);
+
     return {
-      descriptions: completion.choices[0].message.parsed,
-      usage: completion.usage,
+      descriptions: response,
     };
   } catch (error) {
     console.error('Error during LLM response parsing:', error);
@@ -145,13 +142,13 @@ async function generateEventDescription(eventName, event, codebaseDir) {
   const eventDescriptionSchema = createEventDescriptionSchema(properties);
 
   // Send prompt to the LLM and get the structured response
-  const { descriptions, usage } = await sendPromptToLLM(prompt, eventDescriptionSchema);
+  const { descriptions } = await sendPromptToLLM(prompt, eventDescriptionSchema);
 
-  return { eventName, descriptions, usage };
+  return { eventName, descriptions };
 }
 
 async function generateDescriptions(events, codebaseDir) {
-  console.log(`Generating descriptions using ${model}`);
+  console.log(`Generating descriptions using ${model.model}`);
 
   const eventPromises = Object.entries(events).map(([eventName, event]) =>
     generateEventDescription(eventName, event, codebaseDir)
@@ -161,15 +158,9 @@ async function generateDescriptions(events, codebaseDir) {
 
   const results = await Promise.all(eventPromises);
 
-  let promptTokens = 0;
-  let completionTokens = 0;
-
   // Process results and update the events object
-  results.forEach(({ eventName, descriptions, usage }) => {
+  results.forEach(({ eventName, descriptions }) => {
     if (descriptions) {
-      promptTokens += usage.prompt_tokens;
-      completionTokens += usage.completion_tokens;
-
       const event = events[eventName];
       event.description = descriptions.eventDescription;
 
@@ -207,10 +198,6 @@ async function generateDescriptions(events, codebaseDir) {
       console.error(`Failed to get description for event: ${eventName}`);
     }
   });
-
-  console.log(`Prompt tokens used: ${promptTokens}`);
-  console.log(`Completion tokens used: ${completionTokens}`);
-  console.log(`Total tokens used: ${promptTokens + completionTokens}`);
 
   return events;
 }
