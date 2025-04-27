@@ -6,6 +6,11 @@ const commandLineUsage = require('command-line-usage');
 const { run } = require('../src/index');
 const { helpContent } = require('./help');
 
+const SUPPORTED_MODELS = {
+  openai: ['gpt-4o-mini'],
+  gemini: ['gemini-2.0-flash-lite-001'],
+};
+
 // Parse command-line arguments
 const optionDefinitions = [
   {
@@ -18,6 +23,18 @@ const optionDefinitions = [
     alias: 'g',
     type: Boolean,
     defaultValue: false,
+  },
+  {
+    name: 'provider',
+    alias: 'p',
+    type: String,
+    defaultValue: 'openai',
+  },
+  {
+    name: 'model',
+    alias: 'm',
+    type: String,
+    defaultValue: 'gpt-4o-mini',
   },
   {
     name: 'output',
@@ -55,6 +72,8 @@ const options = commandLineArgs(optionDefinitions);
 const {
   targetDir,
   generateDescription,
+  provider,
+  model,
   output,
   customFunction,
   repositoryUrl,
@@ -81,10 +100,32 @@ if (!targetDir) {
 }
 
 if (generateDescription) {
-  if (!process.env.OPENAI_API_KEY) {
-    console.error('Please set the `OPENAI_API_KEY` environment variable to use `generateDescription`.');
+  if (!Object.keys(SUPPORTED_MODELS).includes(provider)) {
+    console.error('Please provide a valid provider. Options: openai, gemini');
     process.exit(1);
+  }
+
+  if (provider === 'openai') {
+    if (!SUPPORTED_MODELS.openai.includes(model)) {
+      console.error(`Please provide a valid model for OpenAI. Options: ${SUPPORTED_MODELS.openai.join(', ')}`);
+      process.exit(1);
+    }
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('Please set the `OPENAI_API_KEY` environment variable to use OpenAI for `generateDescription`.');
+      process.exit(1);
+    }
+  }
+  
+  if (provider === 'gemini') {
+    if (!SUPPORTED_MODELS.gemini.includes(model)) {
+      console.error(`Please provide a valid model for Gemini. Options: ${SUPPORTED_MODELS.gemini.join(', ')}`);
+      process.exit(1);
+    }
+    if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+      console.error('Please set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to use Gemini for `generateDescription`.');
+      process.exit(1);
+    }
   }
 }
 
-run(path.resolve(targetDir), output, customFunction, customSourceDetails, generateDescription);
+run(path.resolve(targetDir), output, customFunction, customSourceDetails, generateDescription, provider, model);

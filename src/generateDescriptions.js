@@ -2,13 +2,6 @@ const fs = require('fs');
 const path = require('path');
 const { z } = require('zod');
 const { PromptTemplate } = require('@langchain/core/prompts');
-const { ChatOpenAI } = require('@langchain/openai');
-
-const model = new ChatOpenAI({
-  modelName: 'gpt-4o-mini',
-  temperature: 0,
-  openAIApiKey: process.env.OPENAI_API_KEY || 'undefined',
-});
 
 function createPrompt(eventName, properties, implementations, codebaseDir) {
   let prompt = `Event Name: "${eventName}"\n\n`;
@@ -108,7 +101,7 @@ function createEventDescriptionSchema(properties) {
   return eventDescriptionSchema;
 }
 
-async function sendPromptToLLM(prompt, schema) {
+async function sendPromptToLLM(prompt, schema, model) {
   try {
     const promptTemplate = new PromptTemplate({
       template: `You are an expert at structured data extraction. Generate detailed descriptions for the following analytics event, its properties, and implementations.\n{input}`,
@@ -131,7 +124,7 @@ async function sendPromptToLLM(prompt, schema) {
   }
 }
 
-async function generateEventDescription(eventName, event, codebaseDir) {
+async function generateEventDescription(eventName, event, codebaseDir, model) {
   const properties = event.properties || {};
   const implementations = event.implementations || [];
 
@@ -142,16 +135,14 @@ async function generateEventDescription(eventName, event, codebaseDir) {
   const eventDescriptionSchema = createEventDescriptionSchema(properties);
 
   // Send prompt to the LLM and get the structured response
-  const { descriptions } = await sendPromptToLLM(prompt, eventDescriptionSchema);
+  const { descriptions } = await sendPromptToLLM(prompt, eventDescriptionSchema, model);
 
   return { eventName, descriptions };
 }
 
-async function generateDescriptions(events, codebaseDir) {
-  console.log(`Generating descriptions using ${model.model}`);
-
+async function generateDescriptions(events, codebaseDir, model) {
   const eventPromises = Object.entries(events).map(([eventName, event]) =>
-    generateEventDescription(eventName, event, codebaseDir)
+    generateEventDescription(eventName, event, codebaseDir, model)
   );
 
   console.log(`Running ${eventPromises.length} prompts in parallel...`);

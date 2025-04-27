@@ -47,6 +47,22 @@ const helpContent = [
         typeLabel: '{underline false}'
       },
       {
+        name: 'provider',
+        alias: 'p',
+        description: 'Specify a provider (options: {italic openai}, {italic gemini})',
+        type: String,
+        defaultValue: 'openai',
+        typeLabel: '{underline openai}'
+      },
+      {
+        name: 'model',
+        alias: 'm',
+        description: 'Specify a model (options: {italic gpt-4o-mini}, {italic gemini-2.0-flash-lite-001})',
+        type: String,
+        defaultValue: 'gpt-4o-mini',
+        typeLabel: '{underline gpt-4o-mini}'
+      },
+      {
         name: 'output',
         alias: 'o',
         description: 'Name of the output file.',

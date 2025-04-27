@@ -25,10 +25,12 @@ npx @flisk/analyze-tracking /path/to/project [options]
 
 ### Key Options:
 - `-g, --generateDescription`: Generate descriptions of fields (default: `false`)
+- `-p, --provider <provider>`: Specify a provider (options: `openai`, `gemini`)
+- `-m, --model <model>`: Specify a model (options: `gpt-4o-mini`, `gemini-2.0-flash-lite-001`)
 - `-o, --output <output_file>`: Name of the output file (default: `tracking-schema.yaml`)
 - `-c, --customFunction <function_name>`: Specify a custom tracking function
 
-🔑&nbsp; **Important:** you must set the `OPENAI_API_KEY` environment variable to use `generateDescription`
+🔑&nbsp; **Important:** If you are using `generateDescription`, you must set the appropriate credentials for the provider you are using as an environment variable. OpenAI uses `OPENAI_API_KEY` and Google Vertex AI uses `GOOGLE_APPLICATION_CREDENTIALS`.
 
 <details>
   <summary>Note on Custom Functions 💡</summary>
