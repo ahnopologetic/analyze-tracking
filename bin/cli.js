@@ -6,10 +6,7 @@ const commandLineUsage = require('command-line-usage');
 const { run } = require('../src/index');
 const { helpContent } = require('./help');
 
-const SUPPORTED_MODELS = {
-  openai: ['gpt-4o-mini'],
-  gemini: ['gemini-2.0-flash-lite-001'],
-};
+const SUPPORTED_MODEL_PROVIDERS = ['openai', 'gemini'];
 
 // Parse command-line arguments
 const optionDefinitions = [
@@ -100,31 +97,19 @@ if (!targetDir) {
 }
 
 if (generateDescription) {
-  if (!Object.keys(SUPPORTED_MODELS).includes(provider)) {
+  if (!SUPPORTED_MODEL_PROVIDERS.includes(provider)) {
     console.error('Please provide a valid provider. Options: openai, gemini');
     process.exit(1);
   }
 
-  if (provider === 'openai') {
-    if (!SUPPORTED_MODELS.openai.includes(model)) {
-      console.error(`Please provide a valid model for OpenAI. Options: ${SUPPORTED_MODELS.openai.join(', ')}`);
-      process.exit(1);
-    }
-    if (!process.env.OPENAI_API_KEY) {
-      console.error('Please set the `OPENAI_API_KEY` environment variable to use OpenAI for `generateDescription`.');
-      process.exit(1);
-    }
+  if (provider === 'openai' && !process.env.OPENAI_API_KEY) {
+    console.error('Please set the `OPENAI_API_KEY` environment variable to use OpenAI for `generateDescription`.');
+    process.exit(1);
   }
-  
-  if (provider === 'gemini') {
-    if (!SUPPORTED_MODELS.gemini.includes(model)) {
-      console.error(`Please provide a valid model for Gemini. Options: ${SUPPORTED_MODELS.gemini.join(', ')}`);
-      process.exit(1);
-    }
-    if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-      console.error('Please set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to use Gemini for `generateDescription`.');
-      process.exit(1);
-    }
+
+  if (provider === 'gemini' && !process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    console.error('Please set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to use Gemini for `generateDescription`.');
+    process.exit(1);
   }
 }
 

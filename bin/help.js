@@ -57,7 +57,7 @@ const helpContent = [
       {
         name: 'model',
         alias: 'm',
-        description: 'Specify a model (options: {italic gpt-4o-mini}, {italic gemini-2.0-flash-lite-001})',
+        description: 'Specify a model (ex: {italic gpt-4o-mini}, {italic gemini-2.0-flash-lite-001})',
         type: String,
         defaultValue: 'gpt-4o-mini',
         typeLabel: '{underline gpt-4o-mini}'
