@@ -26,7 +26,7 @@ npx @flisk/analyze-tracking /path/to/project [options]
 ### Key Options:
 - `-g, --generateDescription`: Generate descriptions of fields (default: `false`)
 - `-p, --provider <provider>`: Specify a provider (options: `openai`, `gemini`)
-- `-m, --model <model>`: Specify a model (ex: `gpt-4o-mini`, `gemini-2.0-flash-lite-001`)
+- `-m, --model <model>`: Specify a model (ex: `gpt-4.1-nano`, `gpt-4o-mini`, `gemini-2.0-flash-lite-001`)
 - `-o, --output <output_file>`: Name of the output file (default: `tracking-schema.yaml`)
 - `-c, --customFunction <function_name>`: Specify a custom tracking function
 

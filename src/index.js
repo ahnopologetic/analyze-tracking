@@ -12,13 +12,13 @@ async function run(targetDir, outputPath, customFunction, customSourceDetails, g
     let llm;
     if (provider === 'openai') {
       llm = new ChatOpenAI({
-        modelName: model,
+        model: model,
         temperature: 0,
       });
     }
     if (provider === 'gemini') {
       llm = new ChatVertexAI({
-        modelName: model,
+        model: model,
         temperature: 0,
       });
     }
