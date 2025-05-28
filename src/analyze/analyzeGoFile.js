@@ -10,6 +10,9 @@ async function analyzeGoFile(filePath, customFunction) {
     // Parse the Go file using go2json
     const ast = extractGoAST(source);
     
+    // First pass: build type information for functions and variables
+    const typeContext = buildTypeContext(ast);
+    
     // Extract tracking events from the AST
     const events = [];
     let currentFunction = 'global';
@@ -20,7 +23,7 @@ async function analyzeGoFile(filePath, customFunction) {
         currentFunction = node.name;
         // Process the function body
         if (node.body) {
-          extractEventsFromBody(node.body, events, filePath, currentFunction, customFunction);
+          extractEventsFromBody(node.body, events, filePath, currentFunction, customFunction, typeContext, currentFunction);
         }
       }
     }
@@ -60,43 +63,112 @@ async function analyzeGoFile(filePath, customFunction) {
   }
 }
 
-function extractEventsFromBody(body, events, filePath, functionName, customFunction) {
+// Build a context of type information from the AST
+function buildTypeContext(ast) {
+  const context = {
+    functions: {},
+    globals: {}
+  };
+  
+  for (const node of ast) {
+    if (node.tag === 'func') {
+      // Store function parameter types
+      context.functions[node.name] = {
+        params: {},
+        locals: {}
+      };
+      
+      if (node.args) {
+        for (const arg of node.args) {
+          if (arg.name && arg.type) {
+            context.functions[node.name].params[arg.name] = arg.type;
+          }
+        }
+      }
+      
+      // Scan function body for local variable declarations
+      if (node.body) {
+        scanForDeclarations(node.body, context.functions[node.name].locals);
+      }
+    } else if (node.tag === 'declare') {
+      // Global variable declarations
+      if (node.names && node.names.length > 0 && node.type) {
+        for (const name of node.names) {
+          context.globals[name] = node.type;
+        }
+      }
+    }
+  }
+  
+  return context;
+}
+
+// Scan statements for variable declarations
+function scanForDeclarations(body, locals) {
   for (const stmt of body) {
-    if (stmt.tag === 'exec' && stmt.expr) {
-      processExpression(stmt.expr, events, filePath, functionName, customFunction);
-    } else if (stmt.tag === 'declare' && stmt.value) {
-      // Handle variable declarations with tracking calls
-      processExpression(stmt.value, events, filePath, functionName, customFunction);
-    } else if (stmt.tag === 'assign' && stmt.rhs) {
-      // Handle assignments with tracking calls
-      processExpression(stmt.rhs, events, filePath, functionName, customFunction);
+    if (stmt.tag === 'declare') {
+      if (stmt.names && stmt.type) {
+        for (const name of stmt.names) {
+          locals[name] = stmt.type;
+        }
+      }
     } else if (stmt.tag === 'if' && stmt.body) {
-      extractEventsFromBody(stmt.body, events, filePath, functionName, customFunction);
+      scanForDeclarations(stmt.body, locals);
     } else if (stmt.tag === 'elseif' && stmt.body) {
-      extractEventsFromBody(stmt.body, events, filePath, functionName, customFunction);
+      scanForDeclarations(stmt.body, locals);
     } else if (stmt.tag === 'else' && stmt.body) {
-      extractEventsFromBody(stmt.body, events, filePath, functionName, customFunction);
+      scanForDeclarations(stmt.body, locals);
     } else if (stmt.tag === 'for' && stmt.body) {
-      extractEventsFromBody(stmt.body, events, filePath, functionName, customFunction);
+      scanForDeclarations(stmt.body, locals);
     } else if (stmt.tag === 'foreach' && stmt.body) {
-      extractEventsFromBody(stmt.body, events, filePath, functionName, customFunction);
+      scanForDeclarations(stmt.body, locals);
     } else if (stmt.tag === 'switch' && stmt.cases) {
       for (const caseNode of stmt.cases) {
         if (caseNode.body) {
-          extractEventsFromBody(caseNode.body, events, filePath, functionName, customFunction);
+          scanForDeclarations(caseNode.body, locals);
         }
       }
     }
   }
 }
 
-function processExpression(expr, events, filePath, functionName, customFunction, depth = 0) {
+function extractEventsFromBody(body, events, filePath, functionName, customFunction, typeContext, currentFunction) {
+  for (const stmt of body) {
+    if (stmt.tag === 'exec' && stmt.expr) {
+      processExpression(stmt.expr, events, filePath, functionName, customFunction, typeContext, currentFunction);
+    } else if (stmt.tag === 'declare' && stmt.value) {
+      // Handle variable declarations with tracking calls
+      processExpression(stmt.value, events, filePath, functionName, customFunction, typeContext, currentFunction);
+    } else if (stmt.tag === 'assign' && stmt.rhs) {
+      // Handle assignments with tracking calls
+      processExpression(stmt.rhs, events, filePath, functionName, customFunction, typeContext, currentFunction);
+    } else if (stmt.tag === 'if' && stmt.body) {
+      extractEventsFromBody(stmt.body, events, filePath, functionName, customFunction, typeContext, currentFunction);
+    } else if (stmt.tag === 'elseif' && stmt.body) {
+      extractEventsFromBody(stmt.body, events, filePath, functionName, customFunction, typeContext, currentFunction);
+    } else if (stmt.tag === 'else' && stmt.body) {
+      extractEventsFromBody(stmt.body, events, filePath, functionName, customFunction, typeContext, currentFunction);
+    } else if (stmt.tag === 'for' && stmt.body) {
+      extractEventsFromBody(stmt.body, events, filePath, functionName, customFunction, typeContext, currentFunction);
+    } else if (stmt.tag === 'foreach' && stmt.body) {
+      extractEventsFromBody(stmt.body, events, filePath, functionName, customFunction, typeContext, currentFunction);
+    } else if (stmt.tag === 'switch' && stmt.cases) {
+      for (const caseNode of stmt.cases) {
+        if (caseNode.body) {
+          extractEventsFromBody(caseNode.body, events, filePath, functionName, customFunction, typeContext, currentFunction);
+        }
+      }
+    }
+  }
+}
+
+function processExpression(expr, events, filePath, functionName, customFunction, typeContext, currentFunction, depth = 0) {
   if (!expr || depth > 20) return; // Prevent infinite recursion with depth limit
   
   // Handle array of expressions
   if (Array.isArray(expr)) {
     for (const item of expr) {
-      processExpression(item, events, filePath, functionName, customFunction, depth + 1);
+      processExpression(item, events, filePath, functionName, customFunction, typeContext, currentFunction, depth + 1);
     }
     return;
   }
@@ -104,25 +176,25 @@ function processExpression(expr, events, filePath, functionName, customFunction,
   // Handle single expression with body
   if (expr.body) {
     for (const item of expr.body) {
-      processExpression(item, events, filePath, functionName, customFunction, depth + 1);
+      processExpression(item, events, filePath, functionName, customFunction, typeContext, currentFunction, depth + 1);
     }
     return;
   }
   
   // Handle specific node types
   if (expr.tag === 'call') {
-    const trackingCall = extractTrackingCall(expr, filePath, functionName, customFunction);
+    const trackingCall = extractTrackingCall(expr, filePath, functionName, customFunction, typeContext, currentFunction);
     if (trackingCall) {
       events.push(trackingCall);
     }
     
     // Also process call arguments
     if (expr.args) {
-      processExpression(expr.args, events, filePath, functionName, customFunction, depth + 1);
+      processExpression(expr.args, events, filePath, functionName, customFunction, typeContext, currentFunction, depth + 1);
     }
   } else if (expr.tag === 'structlit') {
     // Check if this struct literal is a tracking event
-    const trackingCall = extractTrackingCall(expr, filePath, functionName, customFunction);
+    const trackingCall = extractTrackingCall(expr, filePath, functionName, customFunction, typeContext, currentFunction);
     if (trackingCall) {
       events.push(trackingCall);
     }
@@ -131,7 +203,7 @@ function processExpression(expr, events, filePath, functionName, customFunction,
     if (!trackingCall && expr.fields) {
       for (const field of expr.fields) {
         if (field.value) {
-          processExpression(field.value, events, filePath, functionName, customFunction, depth + 1);
+          processExpression(field.value, events, filePath, functionName, customFunction, typeContext, currentFunction, depth + 1);
         }
       }
     }
@@ -139,24 +211,24 @@ function processExpression(expr, events, filePath, functionName, customFunction,
   
   // Process other common properties that might contain expressions
   if (expr.value && expr.tag !== 'structlit') {
-    processExpression(expr.value, events, filePath, functionName, customFunction, depth + 1);
+    processExpression(expr.value, events, filePath, functionName, customFunction, typeContext, currentFunction, depth + 1);
   }
   if (expr.lhs) {
-    processExpression(expr.lhs, events, filePath, functionName, customFunction, depth + 1);
+    processExpression(expr.lhs, events, filePath, functionName, customFunction, typeContext, currentFunction, depth + 1);
   }
   if (expr.rhs) {
-    processExpression(expr.rhs, events, filePath, functionName, customFunction, depth + 1);
+    processExpression(expr.rhs, events, filePath, functionName, customFunction, typeContext, currentFunction, depth + 1);
   }
 }
 
-function extractTrackingCall(callNode, filePath, functionName, customFunction) {
+function extractTrackingCall(callNode, filePath, functionName, customFunction, typeContext, currentFunction) {
   const source = detectSource(callNode, customFunction);
   if (!source) return null;
   
   const eventName = extractEventName(callNode, source);
   if (!eventName) return null;
   
-  const properties = extractProperties(callNode, source);
+  const properties = extractProperties(callNode, source, typeContext, currentFunction);
   
   // Get line number based on source type
   let line = 0;
@@ -329,7 +401,7 @@ function extractEventName(callNode, source) {
   return null;
 }
 
-function extractProperties(callNode, source) {
+function extractProperties(callNode, source, typeContext, currentFunction) {
   const properties = {};
   
   switch (source) {
@@ -377,8 +449,8 @@ function extractProperties(callNode, source) {
                           properties['DistinctId'] = { type: 'string' };
                         }
                       } else if (firstItem[j].tag === 'ident') {
-                        // It's a variable reference
-                        properties['DistinctId'] = { type: 'any' };
+                        // It's a variable reference - look up its type
+                        properties['DistinctId'] = getPropertyInfo(firstItem[j], typeContext, currentFunction);
                       }
                     }
                   }
@@ -405,22 +477,9 @@ function extractProperties(callNode, source) {
                                 firstItem[k+1].tag === 'sigil' && firstItem[k+1].value === ':') {
                               const key = firstItem[k].value.slice(1, -1);
                               
-                              // Determine the type of the value
-                              let valueType = 'any';
-                              if (firstItem[k+2].tag === 'string') {
-                                valueType = 'string';
-                              } else if (firstItem[k+2].tag === 'number') {
-                                valueType = 'number';
-                              } else if (firstItem[k+2].tag === 'ident') {
-                                const identValue = firstItem[k+2].value;
-                                if (identValue === 'true' || identValue === 'false') {
-                                  valueType = 'boolean';
-                                } else if (identValue === 'nil') {
-                                  valueType = 'null';
-                                }
-                              }
-                              
-                              properties[key] = { type: valueType };
+                              // Use getPropertyInfo to determine the type
+                              const valueToken = firstItem[k+2];
+                              properties[key] = getPropertyInfo(valueToken, typeContext, currentFunction);
                             }
                           }
                           foundNewEvent = true;
@@ -456,9 +515,9 @@ function extractProperties(callNode, source) {
         const propsField = findStructField(callNode, 'Properties');
         if (propsField && propsField.value) {
           if (source === 'segment') {
-            extractSegmentProperties(propsField.value, properties);
+            extractSegmentProperties(propsField.value, properties, typeContext, currentFunction);
           } else {
-            extractPostHogProperties(propsField.value, properties);
+            extractPostHogProperties(propsField.value, properties, typeContext, currentFunction);
           }
         }
       }
@@ -476,7 +535,7 @@ function extractProperties(callNode, source) {
         // Extract EventProperties
         const eventPropsField = findStructField(callNode, 'EventProperties');
         if (eventPropsField) {
-          extractPropertiesFromExpr(eventPropsField.value, properties, source);
+          extractPropertiesFromExpr(eventPropsField.value, properties, source, typeContext, currentFunction);
         }
 
         // Extract EventOptions
@@ -500,7 +559,7 @@ function extractProperties(callNode, source) {
                     if (value.tag === 'number') {
                       properties[fieldName] = { type: 'number' };
                     } else {
-                      properties[fieldName] = getPropertyInfo(value);
+                      properties[fieldName] = getPropertyInfo(value, typeContext, currentFunction);
                     }
                   }
                 }
@@ -522,7 +581,7 @@ function extractProperties(callNode, source) {
           // Extract EventProperties
           const eventPropsField = findStructField(eventStruct, 'EventProperties');
           if (eventPropsField) {
-            extractPropertiesFromExpr(eventPropsField.value, properties, source);
+            extractPropertiesFromExpr(eventPropsField.value, properties, source, typeContext, currentFunction);
           }
 
           // Extract EventOptions
@@ -546,7 +605,7 @@ function extractProperties(callNode, source) {
                       if (value.tag === 'number') {
                         properties[fieldName] = { type: 'number' };
                       } else {
-                        properties[fieldName] = getPropertyInfo(value);
+                        properties[fieldName] = getPropertyInfo(value, typeContext, currentFunction);
                       }
                     }
                   }
@@ -587,24 +646,12 @@ function extractProperties(callNode, source) {
                        actualValue = value.body[0];
                      }
                      
-                     if (actualValue.tag === 'string') {
-                       properties[fieldName] = { type: 'string' };
-                     } else if (actualValue.tag === 'number') {
-                       properties[fieldName] = { type: 'number' };
-                     } else if (actualValue.tag === 'ident') {
-                       // Handle variable references
-                       properties[fieldName] = { type: 'any' };
-                     }
+                     // Use getPropertyInfo to handle all value types including variables
+                     properties[fieldName] = getPropertyInfo(actualValue, typeContext, currentFunction);
                   }
-                } else if (field.value.tag === 'string') {
-                  // Handle direct string literals
-                  properties[fieldName] = { type: 'string' };
-                } else if (field.value.tag === 'number') {
-                  // Handle direct number literals
-                  properties[fieldName] = { type: 'number' };
-                } else if (field.value.tag === 'ident') {
-                  // Handle variable references
-                  properties[fieldName] = { type: 'any' };
+                } else {
+                  // Handle direct values using getPropertyInfo
+                  properties[fieldName] = getPropertyInfo(field.value, typeContext, currentFunction);
                 }
               }
             }
@@ -616,7 +663,7 @@ function extractProperties(callNode, source) {
     case 'custom':
       // customFunction("event", map[string]interface{}{...})
       if (callNode.args && callNode.args.length > 1) {
-        extractPropertiesFromExpr(callNode.args[1], properties, source);
+        extractPropertiesFromExpr(callNode.args[1], properties, source, typeContext, currentFunction);
       }
       break;
   }
@@ -678,7 +725,7 @@ function extractFieldName(field) {
 }
 
 // Helper function to extract Segment/PostHog properties from NewProperties().Set() chain
-function extractSegmentProperties(expr, properties) {
+function extractSegmentProperties(expr, properties, typeContext, currentFunction) {
   if (!expr) return;
   
   // Look for method calls in the expression
@@ -708,19 +755,9 @@ function extractSegmentProperties(expr, properties) {
               // Handle different value types
               if (value.tag === 'expr' && value.body) {
                 const firstItem = value.body[0];
-                if (firstItem.tag === 'string') {
-                  properties[key] = { type: 'string' };
-                } else if (firstItem.tag === 'ident') {
-                  if (firstItem.value === 'true' || firstItem.value === 'false') {
-                    properties[key] = { type: 'boolean' };
-                  } else if (firstItem.value === 'nil') {
-                    properties[key] = { type: 'null' };
-                  } else {
-                    properties[key] = { type: 'any' };
-                  }
-                } else if (firstItem.tag === 'number') {
-                  properties[key] = { type: 'number' };
-                }
+                properties[key] = getPropertyInfo(firstItem, typeContext, currentFunction);
+              } else {
+                properties[key] = getPropertyInfo(value, typeContext, currentFunction);
               }
             }
           }
@@ -734,19 +771,9 @@ function extractSegmentProperties(expr, properties) {
               // Handle different value types
               if (value.tag === 'expr' && value.body) {
                 const firstItem = value.body[0];
-                if (firstItem.tag === 'string') {
-                  properties[key] = { type: 'string' };
-                } else if (firstItem.tag === 'ident') {
-                  if (firstItem.value === 'true' || firstItem.value === 'false') {
-                    properties[key] = { type: 'boolean' };
-                  } else if (firstItem.value === 'nil') {
-                    properties[key] = { type: 'null' };
-                  } else {
-                    properties[key] = { type: 'any' };
-                  }
-                } else if (firstItem.tag === 'number') {
-                  properties[key] = { type: 'number' };
-                }
+                properties[key] = getPropertyInfo(firstItem, typeContext, currentFunction);
+              } else {
+                properties[key] = getPropertyInfo(value, typeContext, currentFunction);
               }
             }
           }
@@ -816,12 +843,12 @@ function extractStringValue(node) {
   return null;
 }
 
-function extractPropertiesFromExpr(expr, properties, source) {
+function extractPropertiesFromExpr(expr, properties, source, typeContext, currentFunction) {
   // Handle struct literals (e.g., Type{field: value})
   if (expr.tag === 'structlit' && expr.fields) {
     for (const field of expr.fields) {
       if (field.name) {
-        const propInfo = getPropertyInfo(field.value);
+        const propInfo = getPropertyInfo(field.value, typeContext, currentFunction);
         properties[field.name] = propInfo;
       } else if (field.value && field.value.tag === 'expr' && field.value.body) {
         // Handle map literal fields that don't have explicit names
@@ -839,12 +866,12 @@ function extractPropertiesFromExpr(expr, properties, source) {
             const remainingNodes = field.value.body.slice(3); // Skip key, :, and map declaration
             const structlit = remainingNodes.find(node => node.tag === 'structlit');
             if (structlit) {
-              properties[key] = getPropertyInfo(structlit);
+              properties[key] = getPropertyInfo(structlit, typeContext, currentFunction);
             } else {
               properties[key] = { type: 'object', properties: {} };
             }
           } else if (valueNode) {
-            properties[key] = getPropertyInfo(valueNode);
+            properties[key] = getPropertyInfo(valueNode, typeContext, currentFunction);
           }
         }
       }
@@ -855,7 +882,7 @@ function extractPropertiesFromExpr(expr, properties, source) {
   if (expr.tag === 'expr' && expr.body) {
     for (const item of expr.body) {
       if (item.tag === 'structlit') {
-        extractPropertiesFromExpr(item, properties, source);
+        extractPropertiesFromExpr(item, properties, source, typeContext, currentFunction);
       } else if (item.tag === 'index' && item.container && item.container.value === 'map') {
         // This is a map[string]interface{} type declaration
         // Look for the following structlit
@@ -865,7 +892,7 @@ function extractPropertiesFromExpr(expr, properties, source) {
   }
 }
 
-function getPropertyInfo(value) {
+function getPropertyInfo(value, typeContext, currentFunction) {
   if (!value) return { type: 'any' };
   
   // Handle direct values
@@ -885,7 +912,26 @@ function getPropertyInfo(value) {
     if (value.value === 'nil') {
       return { type: 'null' };
     }
-    // Otherwise it's a variable reference
+    // Look up the variable type in the context
+    const varName = value.value;
+    
+    // Check function parameters first
+    if (typeContext && currentFunction && typeContext.functions[currentFunction]) {
+      const funcContext = typeContext.functions[currentFunction];
+      if (funcContext.params[varName]) {
+        return mapGoTypeToSchemaType(funcContext.params[varName]);
+      }
+      if (funcContext.locals[varName]) {
+        return mapGoTypeToSchemaType(funcContext.locals[varName]);
+      }
+    }
+    
+    // Check global variables
+    if (typeContext && typeContext.globals[varName]) {
+      return mapGoTypeToSchemaType(typeContext.globals[varName]);
+    }
+    
+    // Otherwise it's an unknown variable reference
     return { type: 'any' };
   }
   
@@ -924,7 +970,7 @@ function getPropertyInfo(value) {
         // Inline the property extraction for nested objects
         for (const field of structlit.fields) {
           if (field.name) {
-            nestedProps[field.name] = getPropertyInfo(field.value);
+            nestedProps[field.name] = getPropertyInfo(field.value, typeContext, currentFunction);
           } else if (field.value && field.value.tag === 'expr' && field.value.body) {
             // Handle map literal fields
             const keyNode = field.value.body[0];
@@ -939,12 +985,12 @@ function getPropertyInfo(value) {
                 const remainingNodes = field.value.body.slice(3);
                 const structlit = remainingNodes.find(node => node.tag === 'structlit');
                 if (structlit) {
-                  nestedProps[key] = getPropertyInfo(structlit);
+                  nestedProps[key] = getPropertyInfo(structlit, typeContext, currentFunction);
                 } else {
                   nestedProps[key] = { type: 'object', properties: {} };
                 }
               } else if (valueNode) {
-                nestedProps[key] = getPropertyInfo(valueNode);
+                nestedProps[key] = getPropertyInfo(valueNode, typeContext, currentFunction);
               }
             }
           }
@@ -962,7 +1008,7 @@ function getPropertyInfo(value) {
       if (firstItem.fields) {
         for (const field of firstItem.fields) {
           if (field.name) {
-            nestedProps[field.name] = getPropertyInfo(field.value);
+            nestedProps[field.name] = getPropertyInfo(field.value, typeContext, currentFunction);
           } else if (field.value && field.value.tag === 'expr' && field.value.body) {
             // Handle map literal fields
             const keyNode = field.value.body[0];
@@ -977,12 +1023,12 @@ function getPropertyInfo(value) {
                 const remainingNodes = field.value.body.slice(3);
                 const structlit = remainingNodes.find(node => node.tag === 'structlit');
                 if (structlit) {
-                  nestedProps[key] = getPropertyInfo(structlit);
+                  nestedProps[key] = getPropertyInfo(structlit, typeContext, currentFunction);
                 } else {
                   nestedProps[key] = { type: 'object', properties: {} };
                 }
               } else if (valueNode) {
-                nestedProps[key] = getPropertyInfo(valueNode);
+                nestedProps[key] = getPropertyInfo(valueNode, typeContext, currentFunction);
               }
             }
           }
@@ -1009,7 +1055,7 @@ function getPropertyInfo(value) {
     if (value.fields) {
       for (const field of value.fields) {
         if (field.name) {
-          nestedProps[field.name] = getPropertyInfo(field.value);
+          nestedProps[field.name] = getPropertyInfo(field.value, typeContext, currentFunction);
         } else if (field.value && field.value.tag === 'expr' && field.value.body) {
           // Handle map literal fields
           const keyNode = field.value.body[0];
@@ -1024,12 +1070,12 @@ function getPropertyInfo(value) {
               const remainingNodes = field.value.body.slice(3);
               const structlit = remainingNodes.find(node => node.tag === 'structlit');
               if (structlit) {
-                nestedProps[key] = getPropertyInfo(structlit);
+                nestedProps[key] = getPropertyInfo(structlit, typeContext, currentFunction);
               } else {
                 nestedProps[key] = { type: 'object', properties: {} };
               }
             } else if (valueNode) {
-              nestedProps[key] = getPropertyInfo(valueNode);
+              nestedProps[key] = getPropertyInfo(valueNode, typeContext, currentFunction);
             }
           }
         }
@@ -1042,6 +1088,56 @@ function getPropertyInfo(value) {
   }
   
   // Default to any type
+  return { type: 'any' };
+}
+
+// Helper function to map Go types to schema types
+function mapGoTypeToSchemaType(goType) {
+  if (!goType) return { type: 'any' };
+  
+  // Handle simple types
+  if (goType.tag === 'string') return { type: 'string' };
+  if (goType.tag === 'bool') return { type: 'boolean' };
+  if (goType.tag === 'int' || goType.tag === 'int8' || goType.tag === 'int16' || 
+      goType.tag === 'int32' || goType.tag === 'int64' || goType.tag === 'uint' ||
+      goType.tag === 'uint8' || goType.tag === 'uint16' || goType.tag === 'uint32' ||
+      goType.tag === 'uint64' || goType.tag === 'float32' || goType.tag === 'float64' ||
+      goType.tag === 'byte' || goType.tag === 'rune') {
+    return { type: 'number' };
+  }
+  
+  // Handle array types
+  if (goType.tag === 'array') {
+    const itemType = mapGoTypeToSchemaType(goType.item);
+    return {
+      type: 'array',
+      items: itemType
+    };
+  }
+  
+  // Handle slice types (arrays without fixed size)
+  if (goType.tag === 'array' && !goType.size) {
+    const itemType = mapGoTypeToSchemaType(goType.item);
+    return {
+      type: 'array',
+      items: itemType
+    };
+  }
+  
+  // Handle map types
+  if (goType.tag === 'map') {
+    return {
+      type: 'object',
+      properties: {}
+    };
+  }
+  
+  // Handle pointer types by dereferencing
+  if (goType.tag === 'ptr') {
+    return mapGoTypeToSchemaType(goType.item);
+  }
+  
+  // Default to any for complex or unknown types
   return { type: 'any' };
 }
 
