@@ -334,7 +334,7 @@ function extractProperties(callNode, source) {
   
   switch (source) {
     case 'mixpanel':
-      // mp.Track(ctx, []*mixpanel.Event{mp.NewEvent("event", "", map[string]any{...})})
+      // mp.Track(ctx, []*mixpanel.Event{mp.NewEvent("event", "distinctId", map[string]any{...})})
       if (callNode.args && callNode.args.length > 1) {
         const arrayArg = callNode.args[1];
         if (arrayArg.tag === 'expr' && arrayArg.body) {
@@ -342,19 +342,48 @@ function extractProperties(callNode, source) {
           if (arrayLit && arrayLit.items && arrayLit.items.length > 0) {
             const firstItem = arrayLit.items[0];
             if (Array.isArray(firstItem)) {
-              // Look for pattern: mp.NewEvent("event", "", map[string]any{...})
-              // The third argument is the properties map
+              // Look for pattern: mp.NewEvent("event", "distinctId", map[string]any{...})
               let foundNewEvent = false;
               for (let i = 0; i < firstItem.length - 4; i++) {
                 if (firstItem[i].tag === 'ident' && firstItem[i].value === 'mp' &&
                     firstItem[i+1].tag === 'sigil' && firstItem[i+1].value === '.' &&
                     firstItem[i+2].tag === 'ident' && firstItem[i+2].value === 'NewEvent' &&
                     firstItem[i+3].tag === 'sigil' && firstItem[i+3].value === '(') {
-                  // Found mp.NewEvent( - skip event name and empty string to find the map
+                  // Found mp.NewEvent( - process arguments
                   let j = i + 4;
                   let commaCount = 0;
+                  let distinctIdToken = null;
                   
-                  // Skip to the third argument (after 2 commas)
+                  // Skip the first argument (event name)
+                  while (j < firstItem.length && commaCount < 1) {
+                    if (firstItem[j].tag === 'sigil' && firstItem[j].value === ',') {
+                      commaCount++;
+                    }
+                    j++;
+                  }
+                  
+                  // Extract the second argument (DistinctId)
+                  if (j < firstItem.length) {
+                    // Skip whitespace
+                    while (j < firstItem.length && firstItem[j].tag === 'newline') {
+                      j++;
+                    }
+                    
+                    if (firstItem[j]) {
+                      if (firstItem[j].tag === 'string') {
+                        // It's a string literal
+                        const distinctId = firstItem[j].value.slice(1, -1); // Remove quotes
+                        if (distinctId !== '') { // Only add if not empty string
+                          properties['DistinctId'] = { type: 'string' };
+                        }
+                      } else if (firstItem[j].tag === 'ident') {
+                        // It's a variable reference
+                        properties['DistinctId'] = { type: 'any' };
+                      }
+                    }
+                  }
+                  
+                  // Continue to find the properties map (third argument)
                   while (j < firstItem.length && commaCount < 2) {
                     if (firstItem[j].tag === 'sigil' && firstItem[j].value === ',') {
                       commaCount++;
@@ -370,13 +399,28 @@ function extractProperties(callNode, source) {
                       while (j < firstItem.length) {
                         if (firstItem[j].tag === 'sigil' && firstItem[j].value === '{') {
                           // Simple property extraction from tokens
-                          // Look for pattern: "key": "value"
+                          // Look for pattern: "key": value
                           for (let k = j + 1; k < firstItem.length - 2; k++) {
                             if (firstItem[k].tag === 'string' && 
-                                firstItem[k+1].tag === 'sigil' && firstItem[k+1].value === ':' &&
-                                firstItem[k+2].tag === 'string') {
+                                firstItem[k+1].tag === 'sigil' && firstItem[k+1].value === ':') {
                               const key = firstItem[k].value.slice(1, -1);
-                              properties[key] = { type: 'string' };
+                              
+                              // Determine the type of the value
+                              let valueType = 'any';
+                              if (firstItem[k+2].tag === 'string') {
+                                valueType = 'string';
+                              } else if (firstItem[k+2].tag === 'number') {
+                                valueType = 'number';
+                              } else if (firstItem[k+2].tag === 'ident') {
+                                const identValue = firstItem[k+2].value;
+                                if (identValue === 'true' || identValue === 'false') {
+                                  valueType = 'boolean';
+                                } else if (identValue === 'nil') {
+                                  valueType = 'null';
+                                }
+                              }
+                              
+                              properties[key] = { type: valueType };
                             }
                           }
                           foundNewEvent = true;
