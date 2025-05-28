@@ -138,18 +138,9 @@ class TrackingVisitor(ast.NodeVisitor):
                 # Rudderstack
                 if obj_id == 'rudder_analytics' and method_name == 'track':
                     return 'rudderstack'
-                # mParticle
-                if obj_id == 'mParticle' and method_name == 'logEvent':
-                    return 'mparticle'
                 # PostHog
                 if obj_id == 'posthog' and method_name == 'capture':
                     return 'posthog'
-                # Pendo
-                if obj_id == 'pendo' and method_name == 'track':
-                    return 'pendo'
-                # Heap
-                if obj_id == 'heap' and method_name == 'track':
-                    return 'heap'
         
         # Check for Snowplow struct event patterns
         if isinstance(node.func, ast.Name) and node.func.id in ['trackStructEvent', 'buildStructEvent']:
@@ -169,14 +160,9 @@ class TrackingVisitor(ast.NodeVisitor):
     
     def extract_event_name(self, node, source):
         try:
-            if source in ['segment', 'mixpanel', 'amplitude', 'rudderstack', 'pendo', 'heap', 'custom']:
+            if source in ['segment', 'mixpanel', 'amplitude', 'rudderstack', 'custom']:
                 # Standard format: library.track('event_name', {...})
                 # Custom function follows same format: customFunction('event_name', {...})
-                if len(node.args) >= 1 and isinstance(node.args[0], ast.Constant):
-                    return node.args[0].value
-            
-            elif source == 'mparticle':
-                # mParticle: mParticle.logEvent('event_name', {...})
                 if len(node.args) >= 1 and isinstance(node.args[0], ast.Constant):
                     return node.args[0].value
             
@@ -227,7 +213,7 @@ class TrackingVisitor(ast.NodeVisitor):
             props_node = None
             
             # Get the properties object based on source
-            if source in ['segment', 'mixpanel', 'amplitude', 'rudderstack', 'mparticle', 'pendo', 'heap', 'custom']:
+            if source in ['segment', 'mixpanel', 'amplitude', 'rudderstack', 'custom']:
                 # Standard format: library.track('event_name', {properties})
                 # Custom function follows same format: customFunction('event_name', {...})
                 if len(node.args) > 1:

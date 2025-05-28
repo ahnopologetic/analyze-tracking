@@ -96,10 +96,10 @@ See [schema.json](schema.json) for a JSON Schema of the output.
 | Mixpanel          | ✅ | ✅ | ✅ | ✅ |
 | Amplitude         | ✅ | ✅ | ❌ | ✅ |
 | Rudderstack       | ✅ | ✅ | ✳️ | ✳️ |
-| mParticle         | ✅ | ✅ | ❌ | ❌ |
+| mParticle         | ✅ | ❌ | ❌ | ❌ |
 | PostHog           | ✅ | ✅ | ✅ | ✅ |
-| Pendo             | ✅ | ✅ | ❌ | ❌ |
-| Heap              | ✅ | ✅ | ❌ | ❌ |
+| Pendo             | ✅ | ❌ | ❌ | ❌ |
+| Heap              | ✅ | ❌ | ❌ | ❌ |
 | Snowplow          | ✅ | ✅ | ✅ | ✅ |
 | Custom Function   | ✅ | ✅ | ✅ | ✅ |
 
