@@ -405,7 +405,7 @@ function extractProperties(callNode, source) {
         // Extract UserId/DistinctId
         const idField = findStructField(callNode, source === 'segment' ? 'UserId' : 'DistinctId');
         if (idField) {
-          properties[source === 'segment' ? 'userId' : 'distinctId'] = { type: 'string' };
+          properties[source === 'segment' ? 'UserId' : 'DistinctId'] = { type: 'string' };
         }
         
         // Extract Properties
@@ -426,7 +426,7 @@ function extractProperties(callNode, source) {
         // Extract UserID
         const userIdField = findStructField(callNode, 'UserID');
         if (userIdField) {
-          properties.userId = { type: 'string' };
+          properties['UserID'] = { type: 'string' };
         }
         
         // Extract EventProperties
@@ -472,7 +472,7 @@ function extractProperties(callNode, source) {
           // Extract UserID
           const userIdField = findStructField(eventStruct, 'UserID');
           if (userIdField) {
-            properties.userId = { type: 'string' };
+            properties['UserID'] = { type: 'string' };
           }
           
           // Extract EventProperties
