@@ -81,7 +81,7 @@ function buildTypeContext(ast) {
       if (node.args) {
         for (const arg of node.args) {
           if (arg.name && arg.type) {
-            context.functions[node.name].params[arg.name] = arg.type;
+            context.functions[node.name].params[arg.name] = { type: arg.type };
           }
         }
       }
@@ -94,7 +94,7 @@ function buildTypeContext(ast) {
       // Global variable declarations
       if (node.names && node.names.length > 0 && node.type) {
         for (const name of node.names) {
-          context.globals[name] = node.type;
+          context.globals[name] = { type: node.type, value: node.value };
         }
       }
     }
@@ -109,7 +109,7 @@ function scanForDeclarations(body, locals) {
     if (stmt.tag === 'declare') {
       if (stmt.names && stmt.type) {
         for (const name of stmt.names) {
-          locals[name] = stmt.type;
+          locals[name] = { type: stmt.type, value: stmt.value };
         }
       }
     } else if (stmt.tag === 'if' && stmt.body) {
@@ -914,21 +914,36 @@ function getPropertyInfo(value, typeContext, currentFunction) {
     }
     // Look up the variable type in the context
     const varName = value.value;
+    let varInfo = null;
     
     // Check function parameters first
     if (typeContext && currentFunction && typeContext.functions[currentFunction]) {
       const funcContext = typeContext.functions[currentFunction];
       if (funcContext.params[varName]) {
-        return mapGoTypeToSchemaType(funcContext.params[varName]);
-      }
-      if (funcContext.locals[varName]) {
-        return mapGoTypeToSchemaType(funcContext.locals[varName]);
+        varInfo = funcContext.params[varName];
+      } else if (funcContext.locals[varName]) {
+        varInfo = funcContext.locals[varName];
       }
     }
     
     // Check global variables
-    if (typeContext && typeContext.globals[varName]) {
-      return mapGoTypeToSchemaType(typeContext.globals[varName]);
+    if (!varInfo && typeContext && typeContext.globals[varName]) {
+      varInfo = typeContext.globals[varName];
+    }
+    
+    if (varInfo) {
+      // If we have a value stored for this variable, analyze it to get nested properties
+      if (varInfo.value && varInfo.type && varInfo.type.tag === 'map') {
+        // The variable has a map type and a value, extract properties from the value
+        const nestedProps = {};
+        extractPropertiesFromExpr(varInfo.value, nestedProps, null, typeContext, currentFunction);
+        return {
+          type: 'object',
+          properties: nestedProps
+        };
+      }
+      // Otherwise just return the type
+      return mapGoTypeToSchemaType(varInfo.type);
     }
     
     // Otherwise it's an unknown variable reference
@@ -1094,6 +1109,11 @@ function getPropertyInfo(value, typeContext, currentFunction) {
 // Helper function to map Go types to schema types
 function mapGoTypeToSchemaType(goType) {
   if (!goType) return { type: 'any' };
+  
+  // Handle case where goType might be an object with a type property
+  if (goType.type) {
+    goType = goType.type;
+  }
   
   // Handle simple types
   if (goType.tag === 'string') return { type: 'string' };
