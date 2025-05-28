@@ -523,9 +523,45 @@ function extractProperties(callNode, source) {
           for (const field of structEvent.fields) {
             const fieldName = extractFieldName(field);
             if (fieldName && fieldName !== 'Action') {
-              const value = extractSnowplowValue(field.value);
-              if (value !== null) {
-                properties[fieldName] = { type: typeof value === 'number' ? 'number' : 'string' };
+              // Handle both direct values and sphelp.NewString/NewFloat64 calls
+              if (field.value) {
+                if (field.value.tag === 'expr' && field.value.body) {
+                  // Look for sphelp.NewString/NewFloat64 calls
+                  const callNode = field.value.body.find(item => 
+                    item.tag === 'call' && 
+                    item.func && 
+                    item.func.tag === 'access' && 
+                    (item.func.member === 'NewString' || item.func.member === 'NewFloat64')
+                  );
+                  
+                  if (callNode && callNode.args && callNode.args.length > 0) {
+                     const value = callNode.args[0];
+                     
+                     // Handle case where value is an expr with the actual value in body[0]
+                     let actualValue = value;
+                     if (value.tag === 'expr' && value.body && value.body.length > 0) {
+                       actualValue = value.body[0];
+                     }
+                     
+                     if (actualValue.tag === 'string') {
+                       properties[fieldName] = { type: 'string' };
+                     } else if (actualValue.tag === 'number') {
+                       properties[fieldName] = { type: 'number' };
+                     } else if (actualValue.tag === 'ident') {
+                       // Handle variable references
+                       properties[fieldName] = { type: 'any' };
+                     }
+                  }
+                } else if (field.value.tag === 'string') {
+                  // Handle direct string literals
+                  properties[fieldName] = { type: 'string' };
+                } else if (field.value.tag === 'number') {
+                  // Handle direct number literals
+                  properties[fieldName] = { type: 'number' };
+                } else if (field.value.tag === 'ident') {
+                  // Handle variable references
+                  properties[fieldName] = { type: 'any' };
+                }
               }
             }
           }
