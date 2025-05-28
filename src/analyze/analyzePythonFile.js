@@ -25,6 +25,7 @@ async function analyzePythonFile(filePath, customFunction) {
     py.globals.set('code', code);
     py.globals.set('filepath', filePath);
     py.globals.set('custom_function', customFunction || null);
+    py.globals.set('__name__', null);
     
     // Run the Python analyzer
     py.runPython(analyzerCode);

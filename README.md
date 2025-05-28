@@ -205,9 +205,15 @@ See [schema.json](schema.json) for a JSON Schema of the output.
 
   **Python**
   ```python
-  amplitude.track('<event_name>', {
-    '<property_name>': '<property_value>'
-  })
+  client.track(
+    BaseEvent(
+      event_type="<event_name>",
+      user_id="<user_id>",
+      event_properties={
+        "<property_name>": "<property_value>",
+      },
+    )
+  )
   ```
 
   **Go**
@@ -378,60 +384,41 @@ See [schema.json](schema.json) for a JSON Schema of the output.
   **JavaScript/TypeScript**
   ```js
   snowplow('trackStructEvent', {
+    action: '<event_name>',
     category: '<category>',
-    action: '<action>',
     label: '<label>',
     property: '<property>',
-    value: '<value>'
+    value: <value>
   });
   ```
 
   **Python**
   ```python
-  # Direct tracking
-  trackStructEvent({
-    'category': '<category>',
-    'action': '<action>',
-    'label': '<label>',
-    'property': '<property>',
-    'value': '<value>'
-  })
-  
-  # Builder pattern
-  buildStructEvent({
-    'category': '<category>',
-    'action': '<action>',
-    'label': '<label>',
-    'property': '<property>',
-    'value': '<value>'
-  })
-  
-  # Function call pattern
-  snowplow('trackStructEvent', {
-    'category': '<category>',
-    'action': '<action>',
-    'label': '<label>',
-    'property': '<property>',
-    'value': '<value>'
-  })
+  tracker.track(StructuredEvent(
+    action="<event_name>",
+    category="<category>",
+    label="<label>",
+    property_="<property>",
+    value=<value>,
+  ))
   ```
 
   **Ruby**
   ```ruby
   tracker.track_struct_event(
+    action: '<event_name>',
     category: '<category>',
-    action: '<action>',
     label: '<label>',
     property: '<property>',
-    value: '<value>'
+    value: <value>
   )
   ```
 
   **Go**
   ```go
   tracker.TrackStructEvent(sp.StructuredEvent{
+		Action:   sp.NewString("<event_name>"),
 		Category: sp.NewString("<category>"),
-		Action:   sp.NewString("<action>"),
 		Label:    sp.NewString("<label>"),
 		Property: sp.NewString("<property>"),
 		Value:    sp.NewFloat64(<value>),

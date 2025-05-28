@@ -130,17 +130,36 @@ class TrackingVisitor(ast.NodeVisitor):
                 if obj_id == 'analytics' and method_name == 'track':
                     return 'segment'
                 # Mixpanel
-                if obj_id == 'mixpanel' and method_name == 'track':
+                if obj_id == 'mp' and method_name == 'track':
                     return 'mixpanel'
-                # Amplitude
-                if obj_id == 'amplitude' and method_name == 'track':
-                    return 'amplitude'
                 # Rudderstack
                 if obj_id == 'rudder_analytics' and method_name == 'track':
                     return 'rudderstack'
                 # PostHog
                 if obj_id == 'posthog' and method_name == 'capture':
                     return 'posthog'
+                
+                # Amplitude - tracker with BaseEvent
+                if method_name == 'track' and len(node.args) >= 1:
+                    first_arg = node.args[0]
+                    # Check if the first argument is a BaseEvent call
+                    if isinstance(first_arg, ast.Call) and isinstance(first_arg.func, ast.Name):
+                        if first_arg.func.id == 'BaseEvent':
+                            return 'amplitude'
+                
+                # Snowplow - tracker with StructuredEvent
+                if method_name == 'track' and len(node.args) >= 1:
+                    first_arg = node.args[0]
+                    # Check if the first argument is a StructuredEvent call
+                    if isinstance(first_arg, ast.Call) and isinstance(first_arg.func, ast.Name):
+                        if first_arg.func.id == 'StructuredEvent':
+                            return 'snowplow'
+                    # Also check if it's a variable that might be a StructuredEvent
+                    elif isinstance(first_arg, ast.Name):
+                        # Check if we can find the assignment of this variable
+                        # For now, we'll assume any tracker.track() with a single argument is Snowplow
+                        if obj_id == 'tracker':
+                            return 'snowplow'
         
         # Check for Snowplow struct event patterns
         if isinstance(node.func, ast.Name) and node.func.id in ['trackStructEvent', 'buildStructEvent']:
@@ -160,9 +179,20 @@ class TrackingVisitor(ast.NodeVisitor):
     
     def extract_event_name(self, node, source):
         try:
-            if source in ['segment', 'mixpanel', 'amplitude', 'rudderstack', 'custom']:
-                # Standard format: library.track('event_name', {...})
-                # Custom function follows same format: customFunction('event_name', {...})
+            if source in ['segment', 'rudderstack', 'mixpanel']:
+                # Segment/Rudderstack/Mixpanel format: library.track(user_id/distinct_id, 'event_name', {...})
+                if len(node.args) >= 2 and isinstance(node.args[1], ast.Constant):
+                    return node.args[1].value
+            elif source == 'amplitude':
+                # Amplitude format: client.track(BaseEvent(event_type='event_name', ...))
+                if len(node.args) >= 1 and isinstance(node.args[0], ast.Call):
+                    base_event_call = node.args[0]
+                    # Look for event_type in keyword arguments
+                    for keyword in base_event_call.keywords:
+                        if keyword.arg == 'event_type' and isinstance(keyword.value, ast.Constant):
+                            return keyword.value.value
+            elif source in ['custom']:
+                # Standard format: customFunction('event_name', {...})
                 if len(node.args) >= 1 and isinstance(node.args[0], ast.Constant):
                     return node.args[0].value
             
@@ -181,28 +211,28 @@ class TrackingVisitor(ast.NodeVisitor):
                     return node.args[1].value
             
             elif source == 'snowplow':
-                # Snowplow struct events use 'action' as the event name
+                # Snowplow has multiple patterns
                 if len(node.args) >= 1:
-                    # Handle different snowplow call patterns
-                    props_node = None
+                    first_arg = node.args[0]
                     
-                    # Direct trackStructEvent/buildStructEvent call
-                    if isinstance(node.func, ast.Name) and node.func.id in ['trackStructEvent', 'buildStructEvent']:
-                        if len(node.args) >= 1:
-                            props_node = node.args[0]
-                    
-                    # snowplow('trackStructEvent', {...}) pattern
-                    elif isinstance(node.func, ast.Name) and node.func.id == 'snowplow':
-                        if len(node.args) >= 2:
-                            props_node = node.args[1]
-                    
-                    # Extract 'action' from properties
-                    if props_node and isinstance(props_node, ast.Dict):
-                        for i, key_node in enumerate(props_node.keys):
-                            if isinstance(key_node, ast.Constant) and key_node.value == 'action':
-                                value_node = props_node.values[i]
-                                if isinstance(value_node, ast.Constant):
-                                    return value_node.value
+                    # Pattern 1: tracker.track(StructuredEvent(...))
+                    if isinstance(first_arg, ast.Call) and isinstance(first_arg.func, ast.Name):
+                        if first_arg.func.id == 'StructuredEvent':
+                            # Look for action in keyword arguments
+                            for keyword in first_arg.keywords:
+                                if keyword.arg == 'action' and isinstance(keyword.value, ast.Constant):
+                                    return keyword.value.value
+                
+                # Pattern 2 & 3: For other Snowplow patterns
+                # For Snowplow struct events
+                if isinstance(node.func, ast.Name) and node.func.id in ['trackStructEvent', 'buildStructEvent']:
+                    if len(node.args) >= 1:
+                        props_node = node.args[0]
+                
+                # snowplow('trackStructEvent', {...}) pattern
+                elif isinstance(node.func, ast.Name) and node.func.id == 'snowplow':
+                    if len(node.args) >= 2:
+                        props_node = node.args[1]
         except:
             pass
         return None
@@ -213,9 +243,53 @@ class TrackingVisitor(ast.NodeVisitor):
             props_node = None
             
             # Get the properties object based on source
-            if source in ['segment', 'mixpanel', 'amplitude', 'rudderstack', 'custom']:
-                # Standard format: library.track('event_name', {properties})
-                # Custom function follows same format: customFunction('event_name', {...})
+            if source in ['segment', 'rudderstack']:
+                # Segment/Rudderstack format: analytics.track(user_id, 'event_name', {properties})
+                # Add user_id as a property if it's not null
+                if len(node.args) > 0:
+                    user_id_node = node.args[0]
+                    if isinstance(user_id_node, ast.Constant) and user_id_node.value is not None:
+                        properties["user_id"] = {"type": "string"}
+                    elif isinstance(user_id_node, ast.Name):
+                        # It's a variable reference, include it as a property
+                        properties["user_id"] = {"type": "string"}
+                
+                if len(node.args) > 2:
+                    props_node = node.args[2]
+            elif source == 'mixpanel':
+                # Mixpanel format: mp.track(distinct_id, 'event_name', {properties})
+                # Add distinct_id as a property if it's not null
+                if len(node.args) > 0:
+                    distinct_id_node = node.args[0]
+                    if isinstance(distinct_id_node, ast.Constant) and distinct_id_node.value is not None:
+                        properties["distinct_id"] = {"type": "string"}
+                    elif isinstance(distinct_id_node, ast.Name):
+                        # It's a variable reference, include it as a property
+                        properties["distinct_id"] = {"type": "string"}
+                
+                if len(node.args) > 2:
+                    props_node = node.args[2]
+            elif source == 'amplitude':
+                # Amplitude format: client.track(BaseEvent(event_type='...', user_id='...', event_properties={...}))
+                if len(node.args) >= 1 and isinstance(node.args[0], ast.Call):
+                    base_event_call = node.args[0]
+                    
+                    # First, check for user_id parameter
+                    for keyword in base_event_call.keywords:
+                        if keyword.arg == 'user_id':
+                            if isinstance(keyword.value, ast.Constant) and keyword.value.value is not None:
+                                properties["user_id"] = {"type": "string"}
+                            elif isinstance(keyword.value, ast.Name):
+                                # It's a variable reference, include it as a property
+                                properties["user_id"] = {"type": "string"}
+                    
+                    # Then look for event_properties
+                    for keyword in base_event_call.keywords:
+                        if keyword.arg == 'event_properties' and isinstance(keyword.value, ast.Dict):
+                            props_node = keyword.value
+                            break
+            elif source in ['custom']:
+                # Standard format: customFunction('event_name', {properties})
                 if len(node.args) > 1:
                     props_node = node.args[1]
             
@@ -258,6 +332,48 @@ class TrackingVisitor(ast.NodeVisitor):
                 elif isinstance(node.func, ast.Name) and node.func.id == 'snowplow':
                     if len(node.args) >= 2:
                         props_node = node.args[1]
+                
+                # Pattern: tracker.track(StructuredEvent(...))
+                elif len(node.args) >= 1:
+                    first_arg = node.args[0]
+                    if isinstance(first_arg, ast.Call) and isinstance(first_arg.func, ast.Name):
+                        if first_arg.func.id == 'StructuredEvent':
+                            # Extract all keyword arguments from StructuredEvent except 'action'
+                            for keyword in first_arg.keywords:
+                                if keyword.arg and keyword.arg != 'action':
+                                    # Map property_ to property for consistency
+                                    prop_name = 'property' if keyword.arg == 'property_' else keyword.arg
+                                    
+                                    if isinstance(keyword.value, ast.Constant):
+                                        value_type = self.get_value_type(keyword.value.value)
+                                        properties[prop_name] = {"type": value_type}
+                                    elif isinstance(keyword.value, ast.Name):
+                                        # Check if we know the type of this variable
+                                        var_name = keyword.value.id
+                                        if var_name in self.var_types:
+                                            var_type = self.var_types[var_name]
+                                            if isinstance(var_type, dict):
+                                                properties[prop_name] = var_type
+                                            else:
+                                                properties[prop_name] = {"type": var_type}
+                                        else:
+                                            properties[prop_name] = {"type": "any"}
+                                    elif isinstance(keyword.value, ast.Dict):
+                                        # Nested dictionary
+                                        nested_props = self.extract_nested_dict(keyword.value)
+                                        properties[prop_name] = {
+                                            "type": "object",
+                                            "properties": nested_props
+                                        }
+                                    elif isinstance(keyword.value, ast.List) or isinstance(keyword.value, ast.Tuple):
+                                        # Array/list/tuple
+                                        item_type = self.infer_sequence_item_type(keyword.value)
+                                        properties[prop_name] = {
+                                            "type": "array",
+                                            "items": item_type
+                                        }
+                            # Don't process props_node if we've already extracted properties
+                            props_node = None
             
             # Extract properties from the dictionary
             if props_node and isinstance(props_node, ast.Dict):
@@ -384,12 +500,12 @@ class TrackingVisitor(ast.NodeVisitor):
         return nested_props
     
     def get_value_type(self, value):
-        if isinstance(value, str):
+        if isinstance(value, bool):
+            return "boolean"
+        elif isinstance(value, str):
             return "string"
         elif isinstance(value, (int, float)):
             return "number"
-        elif isinstance(value, bool):
-            return "boolean"
         elif value is None:
             return "null"
         return "any"
