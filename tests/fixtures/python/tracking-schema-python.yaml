@@ -1,0 +1,124 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fliskdata/analyze-tracking/main/schema.json
+version: 1
+source:
+  repository: git@github.com:fliskdata/analyze-tracking.git
+  commit: 271fcbec42330eda86add4be3a606e5d63d85eff
+  timestamp: '2025-05-28T19:02:47Z'
+events:
+  User Signed Up:
+    implementations:
+      - path: main.py
+        line: 11
+        function: segment_track
+        destination: segment
+    properties:
+      user_id:
+        type: string
+      method:
+        type: string
+      is_free_trial:
+        type: boolean
+      plan:
+        type: string
+  Purchase Completed:
+    implementations:
+      - path: main.py
+        line: 21
+        function: mixpanel_track
+        destination: mixpanel
+    properties:
+      distinct_id:
+        type: string
+      plan:
+        type: string
+      price:
+        type: number
+      items:
+        type: array
+        items:
+          type: string
+  Button Clicked:
+    implementations:
+      - path: main.py
+        line: 31
+        function: amplitude_track
+        destination: amplitude
+    properties:
+      user_id:
+        type: string
+      color:
+        type: string
+      size:
+        type: number
+  User Logged In:
+    implementations:
+      - path: main.py
+        line: 47
+        function: rudderstack_track
+        destination: rudderstack
+    properties:
+      user_id:
+        type: string
+      timestamp:
+        type: number
+      os:
+        type: string
+      version:
+        type: number
+  user_signed_up:
+    implementations:
+      - path: main.py
+        line: 58
+        function: posthog_capture
+        destination: posthog
+    properties:
+      method:
+        type: string
+      is_free_trial:
+        type: boolean
+      plan:
+        type: string
+  user_cancelled_subscription:
+    implementations:
+      - path: main.py
+        line: 64
+        function: posthog_capture
+        destination: posthog
+    properties:
+      method:
+        type: string
+      is_free_trial:
+        type: boolean
+      plan:
+        type: string
+  add-to-basket:
+    implementations:
+      - path: main.py
+        line: 74
+        function: snowplow_track_events
+        destination: snowplow
+    properties:
+      category:
+        type: string
+      label:
+        type: string
+      property:
+        type: string
+      value:
+        type: number
+  custom_event:
+    implementations:
+      - path: main.py
+        line: 89
+        function: main
+        destination: custom
+    properties:
+      key:
+        type: string
+      nested:
+        type: object
+        properties:
+          a:
+            type: array
+            items:
+              type: number

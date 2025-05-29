@@ -1,0 +1,317 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fliskdata/analyze-tracking/main/schema.json
+version: 1
+source:
+  repository: git@github.com:fliskdata/analyze-tracking.git
+  commit: d3774b76a3d1528c76c4bdb500dc32ee508e6381
+  timestamp: '2025-05-29T15:55:59Z'
+events:
+  order_completed:
+    implementations:
+      - path: main.ts
+        line: 104
+        function: trackOrderCompletedGA
+        destination: googleanalytics
+    properties:
+      order_id:
+        type: string
+      products:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      order_total:
+        type: number
+      location:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+          postalCode:
+            type: string
+      currency:
+        type: string
+  user_checkout:
+    implementations:
+      - path: main.ts
+        line: 120
+        function: checkout
+        destination: segment
+    properties:
+      stage:
+        type: string
+      method:
+        type: string
+      item_count:
+        type: number
+  purchase_confirmed:
+    implementations:
+      - path: main.ts
+        line: 129
+        function: confirmPurchaseMixpanel
+        destination: mixpanel
+    properties:
+      order_id:
+        type: string
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      total_amount:
+        type: number
+  checkout_initiated:
+    implementations:
+      - path: main.ts
+        line: 134
+        function: checkout
+        destination: amplitude
+    properties:
+      order_id:
+        type: string
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      order_total:
+        type: number
+      location:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+          postalCode:
+            type: string
+      coupon_code:
+        type: 'null'
+  order_finalized:
+    implementations:
+      - path: main.ts
+        line: 149
+        function: checkout
+        destination: rudderstack
+    properties:
+      order_id:
+        type: string
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      revenue:
+        type: number
+      location:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+          postalCode:
+            type: string
+  BuyNow:
+    implementations:
+      - path: main.ts
+        line: 175
+        function: checkout2
+        destination: mparticle
+    properties:
+      order_id:
+        type: string
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      total:
+        type: number
+      location:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+          postalCode:
+            type: string
+  user_action:
+    implementations:
+      - path: main.ts
+        line: 194
+        function: checkout2
+        destination: posthog
+    properties:
+      order_id:
+        type: string
+      retry:
+        type: number
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      amount:
+        type: number
+      shipping:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+          postalCode:
+            type: string
+  customer_checkout:
+    implementations:
+      - path: main.ts
+        line: 215
+        function: checkout3
+        destination: pendo
+    properties:
+      order_id:
+        type: string
+      products:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      subtotal:
+        type: number
+      address:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+          postalCode:
+            type: string
+  user_login:
+    implementations:
+      - path: main.ts
+        line: 229
+        function: checkout3
+        destination: heap
+    properties:
+      user_id:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      roles:
+        type: array
+        items:
+          type: string
+  item_view:
+    implementations:
+      - path: main.ts
+        line: 246
+        function: trackSnowplow
+        destination: snowplow
+    properties:
+      category:
+        type: string
+      label:
+        type: string
+      property:
+        type: string
+      value:
+        type: number
+  button_click:
+    implementations:
+      - path: main.ts
+        line: 250
+        function: trackSnowplow2
+        destination: snowplow
+    properties:
+      category:
+        type: string
+      label:
+        type: string
+      property:
+        type: string
+      value:
+        type: number
+  custom_event_v2:
+    implementations:
+      - path: main.ts
+        line: 279
+        function: global
+        destination: custom
+    properties:
+      order_id:
+        type: string
+      value:
+        type: number
+      list:
+        type: array
+        items:
+          type: string
+      metadata:
+        type: object
+        properties:
+          source:
+            type: string
+          retry:
+            type: boolean

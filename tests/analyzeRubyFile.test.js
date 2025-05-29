@@ -8,7 +8,7 @@ test.describe('analyzeRubyFile', () => {
   const testFilePath = path.join(fixturesDir, 'ruby', 'main.rb');
   
   test('should correctly analyze Ruby file with multiple tracking providers', async () => {
-    const customFunction = 'your_custom_track_function_name';
+    const customFunction = 'customTrackFunction';
     const events = await analyzeRubyFile(testFilePath, customFunction);
     
     // Sort events by eventName for consistent ordering
@@ -125,7 +125,7 @@ test.describe('analyzeRubyFile', () => {
   });
   
   test('should handle nested property types correctly', async () => {
-    const customFunction = 'your_custom_track_function_name';
+    const customFunction = 'customTrackFunction';
     const events = await analyzeRubyFile(testFilePath, customFunction);
     
     const customEvent = events.find(e => e.eventName === 'custom_event');
@@ -157,7 +157,7 @@ test.describe('analyzeRubyFile', () => {
   });
   
   test('should handle all property types correctly', async () => {
-    const customFunction = 'your_custom_track_function_name';
+    const customFunction = 'customTrackFunction';
     const events = await analyzeRubyFile(testFilePath, customFunction);
     
     // Test string properties
@@ -179,7 +179,7 @@ test.describe('analyzeRubyFile', () => {
   });
   
   test('should correctly identify function names in different contexts', async () => {
-    const customFunction = 'your_custom_track_function_name';
+    const customFunction = 'customTrackFunction';
     const events = await analyzeRubyFile(testFilePath, customFunction);
     
     // Verify function names are correctly identified

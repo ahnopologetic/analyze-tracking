@@ -1,0 +1,750 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fliskdata/analyze-tracking/main/schema.json
+version: 1
+source:
+  repository: git@github.com:fliskdata/analyze-tracking.git
+  commit: 9ae0c52c8416a1e8ef447ac443bb877c9e42a052
+  timestamp: '2025-05-29T20:41:34Z'
+events:
+  Signed Up:
+    implementations:
+      - path: go/main.go
+        line: 21
+        function: segmentTrack
+        destination: segment
+    properties:
+      UserId:
+        type: string
+      plan:
+        type: string
+      is_free_trial:
+        type: boolean
+  some_event:
+    implementations:
+      - path: go/main.go
+        line: 33
+        function: mixpanelTrack
+        destination: mixpanel
+    properties:
+      DistinctId:
+        type: string
+      plan:
+        type: string
+      price:
+        type: number
+  Button Clicked:
+    implementations:
+      - path: go/main.go
+        line: 44
+        function: amplitudeTrack
+        destination: amplitude
+      - path: python/main.py
+        line: 31
+        function: amplitude_track
+        destination: amplitude
+    properties:
+      UserID:
+        type: string
+      name:
+        type: string
+      a property:
+        type: string
+      is_free_trial:
+        type: boolean
+      Price:
+        type: number
+      user_id:
+        type: string
+      color:
+        type: string
+      size:
+        type: number
+  user_signed_up:
+    implementations:
+      - path: go/main.go
+        line: 64
+        function: posthogTrack
+        destination: posthog
+      - path: python/main.py
+        line: 58
+        function: posthog_capture
+        destination: posthog
+      - path: ruby/main.rb
+        line: 66
+        function: posthog_track
+        destination: posthog
+    properties:
+      DistinctId:
+        type: string
+      login_type:
+        type: string
+      plan:
+        type: any
+      is_free_trial:
+        type: any
+      method:
+        type: string
+      distinct_id:
+        type: string
+  add-to-basket:
+    implementations:
+      - path: go/main.go
+        line: 81
+        function: snowplowTrack
+        destination: snowplow
+      - path: python/main.py
+        line: 74
+        function: snowplow_track_events
+        destination: snowplow
+      - path: ruby/main.rb
+        line: 96
+        function: snowplow_track
+        destination: snowplow
+    properties:
+      Category:
+        type: string
+      Property:
+        type: string
+      Value:
+        type: number
+      category:
+        type: string
+      label:
+        type: string
+      property:
+        type: string
+      value:
+        type: number
+  custom_event:
+    implementations:
+      - path: go/main.go
+        line: 105
+        function: main
+        destination: custom
+      - path: python/main.py
+        line: 89
+        function: main
+        destination: custom
+      - path: ruby/main.rb
+        line: 79
+        function: custom_track_event
+        destination: custom
+    properties:
+      foo:
+        type: string
+      baz:
+        type: number
+      list:
+        type: array
+        items:
+          type: string
+      obj:
+        type: object
+        properties:
+          a:
+            type: number
+          b:
+            type: number
+          c:
+            type: string
+      key:
+        type: string
+      nested:
+        type: object
+        properties:
+          a:
+            type: array
+            items:
+              type: number
+  purchase:
+    implementations:
+      - path: javascript/main.js
+        line: 14
+        function: trackGA4
+        destination: googleanalytics
+    properties:
+      order_id:
+        type: any
+      products:
+        type: any
+      total:
+        type: any
+      address:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+  newEvent:
+    implementations:
+      - path: javascript/main.js
+        line: 27
+        function: checkout
+        destination: segment
+    properties:
+      something:
+        type: string
+      count:
+        type: number
+  orderCompleted:
+    implementations:
+      - path: javascript/main.js
+        line: 34
+        function: test12345678
+        destination: mixpanel
+    properties:
+      order_id:
+        type: any
+      products:
+        type: any
+      total:
+        type: any
+  checkout:
+    implementations:
+      - path: javascript/main.js
+        line: 44
+        function: checkout
+        destination: amplitude
+    properties:
+      order_id:
+        type: any
+      products:
+        type: any
+      total:
+        type: any
+      address:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+  Order Completed:
+    implementations:
+      - path: javascript/main.js
+        line: 57
+        function: checkout
+        destination: rudderstack
+    properties:
+      order_id:
+        type: any
+      products:
+        type: any
+      revenue:
+        type: any
+      address:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+  Buy Now:
+    implementations:
+      - path: javascript/main.js
+        line: 80
+        function: checkout2
+        destination: mparticle
+    properties:
+      order_id:
+        type: any
+      products:
+        type: any
+      total:
+        type: any
+      address:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+  user click:
+    implementations:
+      - path: javascript/main.js
+        line: 93
+        function: checkout2
+        destination: posthog
+    properties:
+      order_id:
+        type: any
+      blah:
+        type: any
+      products:
+        type: any
+      total:
+        type: any
+      address:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+  customer checkout:
+    implementations:
+      - path: javascript/main.js
+        line: 107
+        function: checkout3
+        destination: pendo
+    properties:
+      order_id:
+        type: string
+      products:
+        type: array
+        items:
+          type: object
+      total:
+        type: number
+      address:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+  login:
+    implementations:
+      - path: javascript/main.js
+        line: 124
+        function: checkout3
+        destination: heap
+    properties:
+      user_id:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+  someevent:
+    implementations:
+      - path: javascript/main.js
+        line: 138
+        function: trackSnowplow
+        destination: snowplow
+    properties:
+      category:
+        type: string
+      label:
+        type: string
+      property:
+        type: string
+      value:
+        type: any
+  customEvent:
+    implementations:
+      - path: javascript/main.js
+        line: 152
+        function: global
+        destination: custom
+    properties:
+      order_id:
+        type: string
+      value:
+        type: number
+      list:
+        type: array
+        items:
+          type: string
+  User Signed Up:
+    implementations:
+      - path: python/main.py
+        line: 11
+        function: segment_track
+        destination: segment
+      - path: ruby/main.rb
+        line: 22
+        function: segment_track
+        destination: segment
+    properties:
+      user_id:
+        type: string
+      method:
+        type: string
+      is_free_trial:
+        type: boolean
+      plan:
+        type: any
+  Purchase Completed:
+    implementations:
+      - path: python/main.py
+        line: 21
+        function: mixpanel_track
+        destination: mixpanel
+      - path: ruby/main.rb
+        line: 36
+        function: mixpanel_track
+        destination: mixpanel
+    properties:
+      distinct_id:
+        type: any
+      plan:
+        type: any
+      price:
+        type: number
+      items:
+        type: array
+        items:
+          type: string
+  User Logged In:
+    implementations:
+      - path: python/main.py
+        line: 47
+        function: rudderstack_track
+        destination: rudderstack
+    properties:
+      user_id:
+        type: string
+      timestamp:
+        type: number
+      os:
+        type: string
+      version:
+        type: number
+  user_cancelled_subscription:
+    implementations:
+      - path: python/main.py
+        line: 64
+        function: posthog_capture
+        destination: posthog
+    properties:
+      method:
+        type: string
+      is_free_trial:
+        type: boolean
+      plan:
+        type: string
+  Item Sold:
+    implementations:
+      - path: ruby/main.rb
+        line: 49
+        function: rudderstack_track
+        destination: rudderstack
+    properties:
+      user_id:
+        type: any
+      sku:
+        type: any
+      shipping:
+        type: string
+  Module Event:
+    implementations:
+      - path: ruby/main.rb
+        line: 108
+        function: track_something
+        destination: segment
+    properties:
+      anonymous_id:
+        type: string
+      from_module:
+        type: boolean
+  order_completed:
+    implementations:
+      - path: typescript/main.ts
+        line: 104
+        function: trackOrderCompletedGA
+        destination: googleanalytics
+    properties:
+      order_id:
+        type: string
+      products:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      order_total:
+        type: number
+      location:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+          postalCode:
+            type: string
+      currency:
+        type: string
+  user_checkout:
+    implementations:
+      - path: typescript/main.ts
+        line: 120
+        function: checkout
+        destination: segment
+    properties:
+      stage:
+        type: string
+      method:
+        type: string
+      item_count:
+        type: number
+  purchase_confirmed:
+    implementations:
+      - path: typescript/main.ts
+        line: 129
+        function: confirmPurchaseMixpanel
+        destination: mixpanel
+    properties:
+      order_id:
+        type: string
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      total_amount:
+        type: number
+  checkout_initiated:
+    implementations:
+      - path: typescript/main.ts
+        line: 134
+        function: checkout
+        destination: amplitude
+    properties:
+      order_id:
+        type: string
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      order_total:
+        type: number
+      location:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+          postalCode:
+            type: string
+      coupon_code:
+        type: 'null'
+  order_finalized:
+    implementations:
+      - path: typescript/main.ts
+        line: 149
+        function: checkout
+        destination: rudderstack
+    properties:
+      order_id:
+        type: string
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      revenue:
+        type: number
+      location:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+          postalCode:
+            type: string
+  BuyNow:
+    implementations:
+      - path: typescript/main.ts
+        line: 175
+        function: checkout2
+        destination: mparticle
+    properties:
+      order_id:
+        type: string
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      total:
+        type: number
+      location:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+          postalCode:
+            type: string
+  user_action:
+    implementations:
+      - path: typescript/main.ts
+        line: 194
+        function: checkout2
+        destination: posthog
+    properties:
+      order_id:
+        type: string
+      retry:
+        type: number
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      amount:
+        type: number
+      shipping:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+          postalCode:
+            type: string
+  customer_checkout:
+    implementations:
+      - path: typescript/main.ts
+        line: 215
+        function: checkout3
+        destination: pendo
+    properties:
+      order_id:
+        type: string
+      products:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      subtotal:
+        type: number
+      address:
+        type: object
+        properties:
+          city:
+            type: string
+          state:
+            type: string
+          postalCode:
+            type: string
+  user_login:
+    implementations:
+      - path: typescript/main.ts
+        line: 229
+        function: checkout3
+        destination: heap
+    properties:
+      user_id:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      roles:
+        type: array
+        items:
+          type: string
+  item_view:
+    implementations:
+      - path: typescript/main.ts
+        line: 246
+        function: trackSnowplow
+        destination: snowplow
+    properties:
+      category:
+        type: string
+      label:
+        type: string
+      property:
+        type: string
+      value:
+        type: number
+  button_click:
+    implementations:
+      - path: typescript/main.ts
+        line: 250
+        function: trackSnowplow2
+        destination: snowplow
+    properties:
+      category:
+        type: string
+      label:
+        type: string
+      property:
+        type: string
+      value:
+        type: number
+  custom_event_v2:
+    implementations:
+      - path: typescript/main.ts
+        line: 279
+        function: global
+        destination: custom
+    properties:
+      order_id:
+        type: string
+      value:
+        type: number
+      list:
+        type: array
+        items:
+          type: string
+      metadata:
+        type: object
+        properties:
+          source:
+            type: string
+          retry:
+            type: boolean

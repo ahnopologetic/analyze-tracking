@@ -8,7 +8,7 @@ test.describe('analyzeGoFile', () => {
   const testFilePath = path.join(fixturesDir, 'go', 'main.go');
   
   test('should correctly analyze Go file with multiple tracking providers', async () => {
-    const customFunction = 'yourCustomTrackFunctionName';
+    const customFunction = 'customTrackFunction';
     const events = await analyzeGoFile(testFilePath, customFunction);
     
     // Sort events by eventName for consistent ordering
@@ -115,7 +115,7 @@ test.describe('analyzeGoFile', () => {
   });
   
   test('should handle nested property types correctly', async () => {
-    const customFunction = 'yourCustomTrackFunctionName';
+    const customFunction = 'customTrackFunction';
     const events = await analyzeGoFile(testFilePath, customFunction);
     
     const customEvent = events.find(e => e.eventName === 'custom_event');
@@ -139,7 +139,7 @@ test.describe('analyzeGoFile', () => {
   });
   
   test('should match expected tracking-schema.yaml output', async () => {
-    const customFunction = 'yourCustomTrackFunctionName';
+    const customFunction = 'customTrackFunction';
     const events = await analyzeGoFile(testFilePath, customFunction);
     
     // Create a map of events by name for easier verification

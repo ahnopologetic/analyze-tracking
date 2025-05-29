@@ -12,7 +12,7 @@ import (
 )
 
 // Custom tracking function for your own hooks
-func yourCustomTrackFunctionName(eventName string, params map[string]any) {
+func customTrackFunction(eventName string, params map[string]any) {
 	log.Printf("Custom track: %s - %+v\n", eventName, params)
 }
 
@@ -102,7 +102,7 @@ func main() {
 		"b": 2,
 		"c": test,
 	}
-	yourCustomTrackFunctionName("custom_event", map[string]any{
+	customTrackFunction("custom_event", map[string]any{
 		"foo":  "bar",
 		"baz":  baz,
 		"list": list,

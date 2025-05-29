@@ -37,7 +37,6 @@ async function analyzeDirectory(dirPath, customFunction) {
     } else if (isGoFile) {
       events = await analyzeGoFile(file, customFunction);
     } else {
-      console.info(`Skipping file ${file} because it is not a supported file type`);
       continue;
     }
 

@@ -76,7 +76,7 @@ class TracksController
 
   # Custom tracking function
   def custom_track_event
-    your_custom_track_function_name('custom_event', {
+    customTrackFunction('custom_event', {
       key: 'value',
       nested: { a: [1, 2, 3] }
     })
@@ -84,7 +84,7 @@ class TracksController
 
   private
 
-  def your_custom_track_function_name(event_name, params = {})
+  def customTrackFunction(event_name, params = {})
     puts "Custom track: #{event_name} - #{params}"
   end
 end

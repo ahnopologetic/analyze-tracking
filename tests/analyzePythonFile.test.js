@@ -9,7 +9,7 @@ test.describe('analyzePythonFile', () => {
   const testFilePath = path.join(fixturesDir, 'python', 'main.py');
   
   test('should correctly analyze Python file with multiple tracking providers', async () => {
-    const customFunction = 'your_custom_track_function_name';
+    const customFunction = 'customTrackFunction';
     const events = await analyzePythonFile(testFilePath, customFunction);
     
     // Sort events by eventName for consistent ordering
@@ -136,7 +136,7 @@ test.describe('analyzePythonFile', () => {
   });
   
   test('should handle nested property types correctly', async () => {
-    const customFunction = 'your_custom_track_function_name';
+    const customFunction = 'customTrackFunction';
     const events = await analyzePythonFile(testFilePath, customFunction);
     
     const customEvent = events.find(e => e.eventName === 'custom_event');
@@ -152,7 +152,7 @@ test.describe('analyzePythonFile', () => {
   });
   
   test('should match expected tracking-schema.yaml output', async () => {
-    const customFunction = 'your_custom_track_function_name';
+    const customFunction = 'customTrackFunction';
     const events = await analyzePythonFile(testFilePath, customFunction);
     
     // Create a map of events by name for easier verification
@@ -281,18 +281,18 @@ from typing import List, Dict, Any
 def track_with_types() -> None:
     items: List[int] = [1, 2, 3]
     config: Dict[str, Any] = {"enabled": True}
-    your_custom_track_function_name("types_test", {
+    customTrackFunction("types_test", {
         "items": items,
         "config": config,
         "inline_list": [1, 2, 3],
         "inline_dict": {"a": 1, "b": "two"}
     })
 
-def your_custom_track_function_name(event_name: str, params: Dict[str, Any]) -> None:
+def customTrackFunction(event_name: str, params: Dict[str, Any]) -> None:
     pass
 `);
     
-    const events = await analyzePythonFile(typeTestFile, 'your_custom_track_function_name');
+    const events = await analyzePythonFile(typeTestFile, 'customTrackFunction');
     assert.strictEqual(events.length, 1);
     
     const event = events[0];

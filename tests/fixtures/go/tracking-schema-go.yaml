@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fliskdata/analyze-tracking/main/schema.json
+version: 1
+source:
+  repository: git@github.com:fliskdata/example-repo-go.git
+  commit: 760a9a4bd8a4b0c48e56def39a44a0397348839a
+  timestamp: '2025-05-28T00:12:46Z'
+events:
+  Signed Up:
+    implementations:
+      - path: main.go
+        line: 21
+        function: segmentTrack
+        destination: segment
+    properties:
+      UserId:
+        type: string
+      plan:
+        type: string
+      is_free_trial:
+        type: boolean
+  some_event:
+    implementations:
+      - path: main.go
+        line: 33
+        function: mixpanelTrack
+        destination: mixpanel
+    properties:
+      DistinctId:
+        type: string
+      plan:
+        type: string
+      price:
+        type: number
+  Button Clicked:
+    implementations:
+      - path: main.go
+        line: 44
+        function: amplitudeTrack
+        destination: amplitude
+    properties:
+      UserID:
+        type: string
+      name:
+        type: string
+      a property:
+        type: string
+      is_free_trial:
+        type: boolean
+      Price:
+        type: number
+  user_signed_up:
+    implementations:
+      - path: main.go
+        line: 64
+        function: posthogTrack
+        destination: posthog
+    properties:
+      DistinctId:
+        type: string
+      login_type:
+        type: string
+      plan:
+        type: string
+      is_free_trial:
+        type: boolean
+  add-to-basket:
+    implementations:
+      - path: main.go
+        line: 81
+        function: snowplowTrack
+        destination: snowplow
+    properties:
+      Category:
+        type: string
+      Property:
+        type: string
+      Value:
+        type: number
+  custom_event:
+    implementations:
+      - path: main.go
+        line: 105
+        function: main
+        destination: custom
+    properties:
+      foo:
+        type: string
+      baz:
+        type: number
+      list:
+        type: array
+        items:
+          type: string
+      obj:
+        type: object
+        properties:
+          a:
+            type: number
+          b:
+            type: number
+          c:
+            type: string

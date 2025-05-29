@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fliskdata/analyze-tracking/main/schema.json
+version: 1
+source:
+  repository: git@github.com:fliskdata/analyze-tracking.git
+  commit: 0c20fe5e71e403c5226b7d8685b6263a89a6b8eb
+  timestamp: '2025-05-29T01:28:30Z'
+events:
+  User Signed Up:
+    implementations:
+      - path: main.rb
+        line: 22
+        function: segment_track
+        destination: segment
+    properties:
+      user_id:
+        type: string
+      method:
+        type: string
+      is_free_trial:
+        type: boolean
+      plan:
+        type: any
+  Purchase Completed:
+    implementations:
+      - path: main.rb
+        line: 36
+        function: mixpanel_track
+        destination: mixpanel
+    properties:
+      distinct_id:
+        type: any
+      plan:
+        type: any
+      price:
+        type: number
+  Item Sold:
+    implementations:
+      - path: main.rb
+        line: 49
+        function: rudderstack_track
+        destination: rudderstack
+    properties:
+      user_id:
+        type: any
+      sku:
+        type: any
+      shipping:
+        type: string
+  user_signed_up:
+    implementations:
+      - path: main.rb
+        line: 66
+        function: posthog_track
+        destination: posthog
+    properties:
+      distinct_id:
+        type: string
+      method:
+        type: string
+      is_free_trial:
+        type: any
+      plan:
+        type: any
+  custom_event:
+    implementations:
+      - path: main.rb
+        line: 79
+        function: custom_track_event
+        destination: custom
+    properties:
+      key:
+        type: string
+      nested:
+        type: object
+        properties:
+          a:
+            type: array
+            items:
+              type: number
+  add-to-basket:
+    implementations:
+      - path: main.rb
+        line: 96
+        function: snowplow_track
+        destination: snowplow
+    properties:
+      category:
+        type: string
+      label:
+        type: string
+      property:
+        type: string
+      value:
+        type: number
+  Module Event:
+    implementations:
+      - path: main.rb
+        line: 108
+        function: track_something
+        destination: segment
+    properties:
+      anonymous_id:
+        type: string
+      from_module:
+        type: boolean
