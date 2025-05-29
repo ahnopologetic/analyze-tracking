@@ -9,6 +9,7 @@
   "scripts": {
     "test": "node tests",
     "test:python": "node --experimental-vm-modules --test tests/analyzePythonFile.test.js",
+    "test:ruby": "node --experimental-vm-modules --test tests/analyzeRubyFile.test.js",
     "test:go": "node --test tests/analyzeGoFile.test.js"
   },
   "repository": {

@@ -1,8 +1,8 @@
 # @flisk/analyze-tracking
 
-Automatically document your analytics setup by analyzing tracking code and generating data schemas from tools like Segment, Amplitude, Mixpanel, and more 🚀.
+Automatically document your analytics setup by analyzing tracking code and generating data schemas from tools like Segment, Amplitude, Mixpanel, and more 🚀
 
-[![NPM version](https://img.shields.io/npm/v/@flisk/analyze-tracking.svg)](https://www.npmjs.com/package/@flisk/analyze-tracking)
+[![NPM version](https://img.shields.io/npm/v/@flisk/analyze-tracking.svg)](https://www.npmjs.com/package/@flisk/analyze-tracking) [![Tests](https://github.com/fliskdata/analyze-tracking/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/fliskdata/analyze-tracking/actions/workflows/tests.yml)
 
 
 ## Why Use @flisk/analyze-tracking?
@@ -30,7 +30,7 @@ npx @flisk/analyze-tracking /path/to/project [options]
 - `-o, --output <output_file>`: Name of the output file (default: `tracking-schema.yaml`)
 - `-c, --customFunction <function_name>`: Specify a custom tracking function
 
-🔑&nbsp; **Important:** If you are using `generateDescription`, you must set the appropriate credentials for the provider you are using as an environment variable. OpenAI uses `OPENAI_API_KEY` and Google Vertex AI uses `GOOGLE_APPLICATION_CREDENTIALS`.
+🔑&nbsp; **Important:** If you are using `generateDescription`, you must set the appropriate credentials for the LLM provider you are using as an environment variable. OpenAI uses `OPENAI_API_KEY` and Google Vertex AI uses `GOOGLE_APPLICATION_CREDENTIALS`.
 
 <details>
   <summary>Note on Custom Functions 💡</summary>
@@ -276,15 +276,6 @@ See [schema.json](schema.json) for a JSON Schema of the output.
     '<property_name>': '<property_value>'
   });
   ```
-
-  **Python**
-  ```python
-  mParticle.logEvent('<event_name>', {
-    '<property_name>': '<property_value>'
-  })
-  ```
-
-
 </details>
 
 <details>
@@ -299,13 +290,9 @@ See [schema.json](schema.json) for a JSON Schema of the output.
 
   **Python**
   ```python
-  posthog.capture(
-    'distinct_id',
-    '<event_name>',
-    {
-      '<property_name>': '<property_value>'
-    }
-  )
+  posthog.capture('distinct_id', '<event_name>', {
+    '<property_name>': '<property_value>'
+  })
   # Or
   posthog.capture(
     'distinct_id',

@@ -46,12 +46,16 @@ class TrackingVisitor {
       const objectName = node.receiver.name;
       const methodName = node.name;
 
-      // Segment
-      if (objectName === 'Analytics' && methodName === 'track') return 'segment';
+      // Segment and Rudderstack (both use similar format)
+      // Analytics.track (Segment) or analytics.track (Rudderstack)
+      if ((objectName === 'Analytics' || objectName === 'analytics') && methodName === 'track') {
+        // Try to determine if it's Rudderstack based on context
+        // For now, we'll treat lowercase 'analytics' as Rudderstack
+        return objectName === 'analytics' ? 'rudderstack' : 'segment';
+      }
       
       // Mixpanel (Ruby SDK uses Mixpanel::Tracker instance)
-      if (methodName === 'track' && node.receiver.type === 'CallNode' && 
-          node.receiver.name === 'tracker') return 'mixpanel';
+      if (methodName === 'track' && objectName === 'tracker') return 'mixpanel';
       
       // PostHog
       if (objectName === 'posthog' && methodName === 'capture') return 'posthog';
@@ -67,7 +71,8 @@ class TrackingVisitor {
   }
 
   extractEventName(node, source) {
-    if (source === 'segment') {
+    if (source === 'segment' || source === 'rudderstack') {
+      // Both Segment and Rudderstack use the same format
       const params = node.arguments_.arguments_[0].elements;
       const eventProperty = params.find(param => param?.key?.unescaped?.value === 'event');
       return eventProperty?.value?.unescaped?.value || null;
@@ -111,7 +116,8 @@ class TrackingVisitor {
   async extractProperties(node, source) {
     const { HashNode, ArrayNode } = await import('@ruby/prism');
 
-    if (source === 'segment') {
+    if (source === 'segment' || source === 'rudderstack') {
+      // Both Segment and Rudderstack use the same format
       const params = node.arguments_.arguments_[0].elements;
       const properties = {};
 
@@ -158,10 +164,10 @@ class TrackingVisitor {
       const args = node.arguments_.arguments_;
       const properties = {};
       
-      // Add distinct_id as property
-      if (args && args.length > 0 && args[0]?.unescaped?.value) {
+      // Add distinct_id as property (even if it's a variable)
+      if (args && args.length > 0) {
         properties.distinct_id = {
-          type: 'string'
+          type: await this.getValueType(args[0])
         };
       }
       
@@ -300,7 +306,7 @@ class TrackingVisitor {
   }
 
   async visit(node) {
-    const { CallNode, ProgramNode, StatementsNode, DefNode, IfNode, BlockNode, ArgumentsNode, HashNode, AssocNode, ClassNode } = await import('@ruby/prism');
+    const { CallNode, ProgramNode, StatementsNode, DefNode, IfNode, BlockNode, ArgumentsNode, HashNode, AssocNode, ClassNode, ModuleNode } = await import('@ruby/prism');
     if (!node) return;
 
     this.ancestors.push(node);
@@ -341,6 +347,10 @@ class TrackingVisitor {
         await this.visit(child);
       }
     } else if (node instanceof ClassNode) {
+      if (node.body) {
+        await this.visit(node.body);
+      }
+    } else if (node instanceof ModuleNode) {
       if (node.body) {
         await this.visit(node.body);
       }
