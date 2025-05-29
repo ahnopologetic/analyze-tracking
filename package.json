@@ -1,6 +1,6 @@
 {
   "name": "@flisk/analyze-tracking",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Analyzes tracking code in a project and generates data schemas",
   "main": "src/index.js",
   "bin": {
@@ -16,6 +16,11 @@
     "test:cli": "node --test tests/cli.test.js",
     "test:schema": "node --test tests/schema.test.js"
   },
+  "files": [
+    "bin",
+    "src",
+    "schema.json"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fliskdata/analyze-tracking.git"

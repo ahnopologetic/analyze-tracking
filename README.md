@@ -415,4 +415,4 @@ See [schema.json](schema.json) for a JSON Schema of the output.
 
 
 ## Contribute
-We're actively improving this package. Found a bug? Want to request a feature? Open an issue or contribute directly!
+We're actively improving this package. Found a bug? Have a feature request? Open an issue or submit a pull request!
