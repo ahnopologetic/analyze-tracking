@@ -31,7 +31,7 @@ const optionDefinitions = [
     name: 'model',
     alias: 'm',
     type: String,
-    defaultValue: 'gpt-4o-mini',
+    defaultValue: 'gpt-4.1-nano',
   },
   {
     name: 'output',

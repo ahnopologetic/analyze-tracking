@@ -138,3 +138,6 @@ __pycache__/
 *.pyd
 *.pyw
 *.pyz
+
+# Tracking schema output
+tracking-schema.yaml
