@@ -33,10 +33,20 @@ function analyzeJsFile(filePath, customFunction) {
           if (source === 'googleanalytics' && node.arguments.length >= 3) {
             eventName = node.arguments[1]?.value || null;
             propertiesNode = node.arguments[2];
-          } else if (source === 'snowplow' && node.arguments.length >= 2) {
-            const actionProperty = node.arguments[1].properties.find(prop => prop.key.name === 'action');
-            eventName = actionProperty ? actionProperty.value.value : null;
-            propertiesNode = node.arguments[1];
+          } else if (source === 'snowplow' && node.arguments.length > 0) {
+            // Snowplow pattern: tracker.track(buildStructEvent({...}))
+            const firstArg = node.arguments[0];
+            if (firstArg.type === 'CallExpression' && firstArg.arguments.length > 0) {
+              const structEventArg = firstArg.arguments[0];
+              if (structEventArg.type === 'ObjectExpression') {
+                const actionProperty = structEventArg.properties.find(prop => prop.key.name === 'action');
+                eventName = actionProperty ? actionProperty.value.value : null;
+                propertiesNode = structEventArg;
+              }
+            }
+          } else if (source === 'mparticle' && node.arguments.length >= 3) {
+            eventName = node.arguments[0]?.value || null;
+            propertiesNode = node.arguments[2];
           } else if (node.arguments.length >= 2) {
             eventName = node.arguments[0]?.value || null;
             propertiesNode = node.arguments[1];
@@ -46,7 +56,12 @@ function analyzeJsFile(filePath, customFunction) {
           const functionName = findWrappingFunctionJs(node, ancestors);
 
           if (eventName && propertiesNode && propertiesNode.type === 'ObjectExpression') {
-            const properties = extractJsProperties(propertiesNode);
+            let properties = extractJsProperties(propertiesNode);
+            
+            // For Snowplow, remove 'action' from properties since it's used as the event name
+            if (source === 'snowplow' && properties.action) {
+              delete properties.action;
+            }
 
             events.push({
               eventName,

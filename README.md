@@ -198,7 +198,7 @@ See [schema.json](schema.json) for a JSON Schema of the output.
 
   **JavaScript/TypeScript**
   ```js
-  amplitude.logEvent('<event_name>', {
+  amplitude.track('<event_name>', {
     <event_parameters>
   });
   ```
@@ -272,7 +272,7 @@ See [schema.json](schema.json) for a JSON Schema of the output.
 
   **JavaScript/TypeScript**
   ```js
-  mParticle.logEvent('<event_name>', {
+  mParticle.logEvent('<event_name>', mParticle.EventType.<event_type>, {
     '<property_name>': '<property_value>'
   });
   ```
@@ -370,13 +370,13 @@ See [schema.json](schema.json) for a JSON Schema of the output.
 
   **JavaScript/TypeScript**
   ```js
-  snowplow('trackStructEvent', {
+  tracker.track(buildStructEvent({
     action: '<event_name>',
     category: '<category>',
     label: '<label>',
     property: '<property>',
     value: <value>
-  });
+  }));
   ```
 
   **Python**

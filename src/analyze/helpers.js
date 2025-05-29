@@ -13,16 +13,22 @@ function detectSourceJs(node, customFunction) {
 
     if (objectName === 'analytics' && methodName === 'track') return 'segment';
     if (objectName === 'mixpanel' && methodName === 'track') return 'mixpanel';
-    if (objectName === 'amplitude' && methodName === 'logEvent') return 'amplitude';
+    if (objectName === 'amplitude' && methodName === 'track') return 'amplitude';
     if (objectName === 'rudderanalytics' && methodName === 'track') return 'rudderstack';
-    if (objectName === 'mParticle' && methodName === 'logEvent') return 'mparticle';
+    if ((objectName === 'mParticle' || objectName === 'mparticle') && methodName === 'logEvent') return 'mparticle';
     if (objectName === 'posthog' && methodName === 'capture') return 'posthog';
     if (objectName === 'pendo' && methodName === 'track') return 'pendo';
     if (objectName === 'heap' && methodName === 'track') return 'heap';
-  }
-
-  if (node.callee.type === 'Identifier' && node.callee.name === 'snowplow') {
-    return 'snowplow';
+    
+    // Check for Snowplow pattern: tracker.track(buildStructEvent({...}))
+    if (objectName === 'tracker' && methodName === 'track' && node.arguments.length > 0) {
+      const firstArg = node.arguments[0];
+      if (firstArg.type === 'CallExpression' && 
+          firstArg.callee.type === 'Identifier' && 
+          firstArg.callee.name === 'buildStructEvent') {
+        return 'snowplow';
+      }
+    }
   }
 
   if (node.callee.type === 'Identifier' && node.callee.name === customFunction) {
@@ -45,18 +51,24 @@ function detectSourceTs(node, customFunction) {
 
     if (objectName === 'analytics' && methodName === 'track') return 'segment';
     if (objectName === 'mixpanel' && methodName === 'track') return 'mixpanel';
-    if (objectName === 'amplitude' && methodName === 'logEvent') return 'amplitude';
+    if (objectName === 'amplitude' && methodName === 'track') return 'amplitude';
     if (objectName === 'rudderanalytics' && methodName === 'track') return 'rudderstack';
-    if (objectName === 'mParticle' && methodName === 'logEvent') return 'mparticle';
+    if ((objectName === 'mParticle' || objectName === 'mparticle') && methodName === 'logEvent') return 'mparticle';
     if (objectName === 'posthog' && methodName === 'capture') return 'posthog';
     if (objectName === 'pendo' && methodName === 'track') return 'pendo';
     if (objectName === 'heap' && methodName === 'track') return 'heap';
+    
+    // Check for Snowplow pattern: tracker.track(buildStructEvent({...}))
+    if (objectName === 'tracker' && methodName === 'track' && node.arguments.length > 0) {
+      const firstArg = node.arguments[0];
+      if (ts.isCallExpression(firstArg) && 
+          ts.isIdentifier(firstArg.expression) && 
+          firstArg.expression.escapedText === 'buildStructEvent') {
+        return 'snowplow';
+      }
+    }
   }
   
-  if (ts.isIdentifier(node.expression) && node.expression.escapedText === 'snowplow') {
-    return 'snowplow';
-  }
-
   if (ts.isIdentifier(node.expression) && node.expression.escapedText === customFunction) {
     return 'custom';
   }
@@ -94,6 +106,11 @@ function findWrappingFunctionJs(node, ancestors) {
       return current.id ? current.id.name : 'anonymous';
     }
 
+    // Handle class methods
+    if (current.type === 'MethodDefinition') {
+      return current.key.name || 'anonymous';
+    }
+
     // Handle exported variable/function (e.g., export const myFunc = () => {})
     if (current.type === 'ExportNamedDeclaration' && current.declaration) {
       const declaration = current.declaration.declarations ? current.declaration.declarations[0] : null;
@@ -116,13 +133,47 @@ function extractJsProperties(node) {
   node.properties.forEach((prop) => {
     const key = prop.key?.name || prop.key?.value;
     if (key) {
-      let valueType = typeof prop.value.value;
       if (prop.value.type === 'ObjectExpression') {
         properties[key] = {
           type: 'object',
           properties: extractJsProperties(prop.value),
         };
+      } else if (prop.value.type === 'ArrayExpression') {
+        // Handle arrays - analyze elements to determine item type
+        let itemType = 'any';
+        if (prop.value.elements && prop.value.elements.length > 0) {
+          // Check the types of all elements
+          const elementTypes = new Set();
+          prop.value.elements.forEach(element => {
+            if (element) {
+              if (element.type === 'Literal') {
+                elementTypes.add(typeof element.value);
+              } else if (element.type === 'ObjectExpression') {
+                elementTypes.add('object');
+              } else if (element.type === 'ArrayExpression') {
+                elementTypes.add('array');
+              } else {
+                elementTypes.add('any');
+              }
+            }
+          });
+          
+          // If all elements are the same type, use that type
+          if (elementTypes.size === 1) {
+            itemType = Array.from(elementTypes)[0];
+          } else {
+            itemType = 'any';
+          }
+        }
+        
+        properties[key] = {
+          type: 'array',
+          items: {
+            type: itemType
+          }
+        };
       } else {
+        let valueType = typeof prop.value.value;
         if (valueType === 'undefined') {
           valueType = 'any';
         } else if (valueType === 'object') {
