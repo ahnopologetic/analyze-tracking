@@ -1,26 +1,28 @@
+const test = require('node:test');
+const assert = require('node:assert');
 const path = require('path');
 const { analyzeGoFile } = require('../src/analyze/analyzeGoFile');
 
-describe('analyzeGoFile', () => {
+test.describe('analyzeGoFile', () => {
   const fixturesDir = path.join(__dirname, 'fixtures');
-  const testFilePath = path.join(fixturesDir, 'main.go');
+  const testFilePath = path.join(fixturesDir, 'go', 'main.go');
   
-  it('should correctly analyze Go file with multiple tracking providers', async () => {
+  test('should correctly analyze Go file with multiple tracking providers', async () => {
     const customFunction = 'yourCustomTrackFunctionName';
     const events = await analyzeGoFile(testFilePath, customFunction);
     
     // Sort events by eventName for consistent ordering
     events.sort((a, b) => a.eventName.localeCompare(b.eventName));
     
-    expect(events).toHaveLength(6);
+    assert.strictEqual(events.length, 6);
     
     // Test Amplitude event
     const amplitudeEvent = events.find(e => e.eventName === 'Button Clicked');
-    expect(amplitudeEvent).toBeDefined();
-    expect(amplitudeEvent.source).toBe('amplitude');
-    expect(amplitudeEvent.functionName).toBe('amplitudeTrack');
-    expect(amplitudeEvent.line).toBe(44);
-    expect(amplitudeEvent.properties).toEqual({
+    assert.ok(amplitudeEvent);
+    assert.strictEqual(amplitudeEvent.source, 'amplitude');
+    assert.strictEqual(amplitudeEvent.functionName, 'amplitudeTrack');
+    assert.strictEqual(amplitudeEvent.line, 44);
+    assert.deepStrictEqual(amplitudeEvent.properties, {
       UserID: { type: 'string' },
       name: { type: 'string' },
       'a property': { type: 'string' },
@@ -30,11 +32,11 @@ describe('analyzeGoFile', () => {
     
     // Test Segment event
     const segmentEvent = events.find(e => e.eventName === 'Signed Up');
-    expect(segmentEvent).toBeDefined();
-    expect(segmentEvent.source).toBe('segment');
-    expect(segmentEvent.functionName).toBe('segmentTrack');
-    expect(segmentEvent.line).toBe(21);
-    expect(segmentEvent.properties).toEqual({
+    assert.ok(segmentEvent);
+    assert.strictEqual(segmentEvent.source, 'segment');
+    assert.strictEqual(segmentEvent.functionName, 'segmentTrack');
+    assert.strictEqual(segmentEvent.line, 21);
+    assert.deepStrictEqual(segmentEvent.properties, {
       UserId: { type: 'string' },
       plan: { type: 'string' },
       is_free_trial: { type: 'boolean' }
@@ -42,11 +44,11 @@ describe('analyzeGoFile', () => {
     
     // Test Mixpanel event
     const mixpanelEvent = events.find(e => e.eventName === 'some_event');
-    expect(mixpanelEvent).toBeDefined();
-    expect(mixpanelEvent.source).toBe('mixpanel');
-    expect(mixpanelEvent.functionName).toBe('mixpanelTrack');
-    expect(mixpanelEvent.line).toBe(33);
-    expect(mixpanelEvent.properties).toEqual({
+    assert.ok(mixpanelEvent);
+    assert.strictEqual(mixpanelEvent.source, 'mixpanel');
+    assert.strictEqual(mixpanelEvent.functionName, 'mixpanelTrack');
+    assert.strictEqual(mixpanelEvent.line, 33);
+    assert.deepStrictEqual(mixpanelEvent.properties, {
       DistinctId: { type: 'string' },
       plan: { type: 'string' },
       price: { type: 'number' }
@@ -54,11 +56,11 @@ describe('analyzeGoFile', () => {
     
     // Test PostHog event
     const posthogEvent = events.find(e => e.eventName === 'user_signed_up');
-    expect(posthogEvent).toBeDefined();
-    expect(posthogEvent.source).toBe('posthog');
-    expect(posthogEvent.functionName).toBe('posthogTrack');
-    expect(posthogEvent.line).toBe(64);
-    expect(posthogEvent.properties).toEqual({
+    assert.ok(posthogEvent);
+    assert.strictEqual(posthogEvent.source, 'posthog');
+    assert.strictEqual(posthogEvent.functionName, 'posthogTrack');
+    assert.strictEqual(posthogEvent.line, 64);
+    assert.deepStrictEqual(posthogEvent.properties, {
       DistinctId: { type: 'string' },
       login_type: { type: 'string' },
       plan: { type: 'string' },
@@ -67,11 +69,11 @@ describe('analyzeGoFile', () => {
     
     // Test Snowplow event
     const snowplowEvent = events.find(e => e.eventName === 'add-to-basket');
-    expect(snowplowEvent).toBeDefined();
-    expect(snowplowEvent.source).toBe('snowplow');
-    expect(snowplowEvent.functionName).toBe('snowplowTrack');
-    expect(snowplowEvent.line).toBe(81);
-    expect(snowplowEvent.properties).toEqual({
+    assert.ok(snowplowEvent);
+    assert.strictEqual(snowplowEvent.source, 'snowplow');
+    assert.strictEqual(snowplowEvent.functionName, 'snowplowTrack');
+    assert.strictEqual(snowplowEvent.line, 81);
+    assert.deepStrictEqual(snowplowEvent.properties, {
       Category: { type: 'string' },
       Property: { type: 'string' },
       Value: { type: 'number' }
@@ -79,11 +81,11 @@ describe('analyzeGoFile', () => {
     
     // Test custom function event
     const customEvent = events.find(e => e.eventName === 'custom_event');
-    expect(customEvent).toBeDefined();
-    expect(customEvent.source).toBe('custom');
-    expect(customEvent.functionName).toBe('main');
-    expect(customEvent.line).toBe(105);
-    expect(customEvent.properties).toEqual({
+    assert.ok(customEvent);
+    assert.strictEqual(customEvent.source, 'custom');
+    assert.strictEqual(customEvent.functionName, 'main');
+    assert.strictEqual(customEvent.line, 105);
+    assert.deepStrictEqual(customEvent.properties, {
       foo: { type: 'string' },
       baz: { type: 'number' },
       list: { type: 'array', items: { type: 'string' } },
@@ -98,29 +100,29 @@ describe('analyzeGoFile', () => {
     });
   });
   
-  it('should handle files without tracking events', async () => {
-    const emptyTestFile = path.join(fixturesDir, 'empty.go');
+  test('should handle files without tracking events', async () => {
+    const emptyTestFile = path.join(fixturesDir, 'go', 'empty.go');
     const events = await analyzeGoFile(emptyTestFile, 'customTrack');
-    expect(events).toEqual([]);
+    assert.deepStrictEqual(events, []);
   });
   
-  it('should handle missing custom function', async () => {
+  test('should handle missing custom function', async () => {
     const events = await analyzeGoFile(testFilePath, null);
     
     // Should find all events except the custom one
-    expect(events).toHaveLength(5);
-    expect(events.find(e => e.source === 'custom')).toBeUndefined();
+    assert.strictEqual(events.length, 5);
+    assert.strictEqual(events.find(e => e.source === 'custom'), undefined);
   });
   
-  it('should handle nested property types correctly', async () => {
+  test('should handle nested property types correctly', async () => {
     const customFunction = 'yourCustomTrackFunctionName';
     const events = await analyzeGoFile(testFilePath, customFunction);
     
     const customEvent = events.find(e => e.eventName === 'custom_event');
-    expect(customEvent).toBeDefined();
+    assert.ok(customEvent);
     
     // Test nested object properties
-    expect(customEvent.properties.obj).toEqual({
+    assert.deepStrictEqual(customEvent.properties.obj, {
       type: 'object',
       properties: {
         a: { type: 'number' },
@@ -130,13 +132,13 @@ describe('analyzeGoFile', () => {
     });
     
     // Test array properties
-    expect(customEvent.properties.list).toEqual({
+    assert.deepStrictEqual(customEvent.properties.list, {
       type: 'array',
       items: { type: 'string' }
     });
   });
   
-  it('should match expected tracking-schema.yaml output', async () => {
+  test('should match expected tracking-schema.yaml output', async () => {
     const customFunction = 'yourCustomTrackFunctionName';
     const events = await analyzeGoFile(testFilePath, customFunction);
     
@@ -147,7 +149,7 @@ describe('analyzeGoFile', () => {
     });
     
     // Verify all expected events are present
-    expect(Object.keys(eventMap).sort()).toEqual([
+    assert.deepStrictEqual(Object.keys(eventMap).sort(), [
       'Button Clicked',
       'Signed Up',
       'add-to-basket',
@@ -157,88 +159,82 @@ describe('analyzeGoFile', () => {
     ]);
     
     // Verify each event matches the expected schema format
-    expect(eventMap['Signed Up']).toMatchObject({
-      eventName: 'Signed Up',
-      source: 'segment',
-      line: 21,
-      functionName: 'segmentTrack',
-      properties: {
-        UserId: { type: 'string' },
-        plan: { type: 'string' },
-        is_free_trial: { type: 'boolean' }
-      }
+    assert.ok(eventMap['Signed Up']);
+    assert.strictEqual(eventMap['Signed Up'].eventName, 'Signed Up');
+    assert.strictEqual(eventMap['Signed Up'].source, 'segment');
+    assert.strictEqual(eventMap['Signed Up'].line, 21);
+    assert.strictEqual(eventMap['Signed Up'].functionName, 'segmentTrack');
+    assert.deepStrictEqual(eventMap['Signed Up'].properties, {
+      UserId: { type: 'string' },
+      plan: { type: 'string' },
+      is_free_trial: { type: 'boolean' }
     });
     
-    expect(eventMap['some_event']).toMatchObject({
-      eventName: 'some_event',
-      source: 'mixpanel',
-      line: 33,
-      functionName: 'mixpanelTrack',
-      properties: {
-        DistinctId: { type: 'string' },
-        plan: { type: 'string' },
-        price: { type: 'number' }
-      }
+    assert.ok(eventMap['some_event']);
+    assert.strictEqual(eventMap['some_event'].eventName, 'some_event');
+    assert.strictEqual(eventMap['some_event'].source, 'mixpanel');
+    assert.strictEqual(eventMap['some_event'].line, 33);
+    assert.strictEqual(eventMap['some_event'].functionName, 'mixpanelTrack');
+    assert.deepStrictEqual(eventMap['some_event'].properties, {
+      DistinctId: { type: 'string' },
+      plan: { type: 'string' },
+      price: { type: 'number' }
     });
     
-    expect(eventMap['Button Clicked']).toMatchObject({
-      eventName: 'Button Clicked',
-      source: 'amplitude',
-      line: 44,
-      functionName: 'amplitudeTrack',
-      properties: {
-        UserID: { type: 'string' },
-        name: { type: 'string' },
-        'a property': { type: 'string' },
-        is_free_trial: { type: 'boolean' },
-        Price: { type: 'number' }
-      }
+    assert.ok(eventMap['Button Clicked']);
+    assert.strictEqual(eventMap['Button Clicked'].eventName, 'Button Clicked');
+    assert.strictEqual(eventMap['Button Clicked'].source, 'amplitude');
+    assert.strictEqual(eventMap['Button Clicked'].line, 44);
+    assert.strictEqual(eventMap['Button Clicked'].functionName, 'amplitudeTrack');
+    assert.deepStrictEqual(eventMap['Button Clicked'].properties, {
+      UserID: { type: 'string' },
+      name: { type: 'string' },
+      'a property': { type: 'string' },
+      is_free_trial: { type: 'boolean' },
+      Price: { type: 'number' }
     });
     
-    expect(eventMap['user_signed_up']).toMatchObject({
-      eventName: 'user_signed_up',
-      source: 'posthog',
-      line: 64,
-      functionName: 'posthogTrack',
-      properties: {
-        DistinctId: { type: 'string' },
-        login_type: { type: 'string' },
-        plan: { type: 'string' },
-        is_free_trial: { type: 'boolean' }
-      }
+    assert.ok(eventMap['user_signed_up']);
+    assert.strictEqual(eventMap['user_signed_up'].eventName, 'user_signed_up');
+    assert.strictEqual(eventMap['user_signed_up'].source, 'posthog');
+    assert.strictEqual(eventMap['user_signed_up'].line, 64);
+    assert.strictEqual(eventMap['user_signed_up'].functionName, 'posthogTrack');
+    assert.deepStrictEqual(eventMap['user_signed_up'].properties, {
+      DistinctId: { type: 'string' },
+      login_type: { type: 'string' },
+      plan: { type: 'string' },
+      is_free_trial: { type: 'boolean' }
     });
     
-    expect(eventMap['add-to-basket']).toMatchObject({
-      eventName: 'add-to-basket',
-      source: 'snowplow',
-      line: 81,
-      functionName: 'snowplowTrack',
-      properties: {
-        Category: { type: 'string' },
-        Property: { type: 'string' },
-        Value: { type: 'number' }
-      }
+    assert.ok(eventMap['add-to-basket']);
+    assert.strictEqual(eventMap['add-to-basket'].eventName, 'add-to-basket');
+    assert.strictEqual(eventMap['add-to-basket'].source, 'snowplow');
+    assert.strictEqual(eventMap['add-to-basket'].line, 81);
+    assert.strictEqual(eventMap['add-to-basket'].functionName, 'snowplowTrack');
+    assert.deepStrictEqual(eventMap['add-to-basket'].properties, {
+      Category: { type: 'string' },
+      Property: { type: 'string' },
+      Value: { type: 'number' }
     });
     
-    expect(eventMap['custom_event']).toMatchObject({
-      eventName: 'custom_event',
-      source: 'custom',
-      line: 105,
-      functionName: 'main',
-      properties: {
-        foo: { type: 'string' },
-        baz: { type: 'number' },
-        list: { 
-          type: 'array', 
-          items: { type: 'string' }
-        },
-        obj: {
-          type: 'object',
-          properties: {
-            a: { type: 'number' },
-            b: { type: 'number' },
-            c: { type: 'string' }
-          }
+    assert.ok(eventMap['custom_event']);
+    assert.strictEqual(eventMap['custom_event'].eventName, 'custom_event');
+    assert.strictEqual(eventMap['custom_event'].source, 'custom');
+    assert.strictEqual(eventMap['custom_event'].line, 105);
+    assert.strictEqual(eventMap['custom_event'].functionName, 'main');
+    assert.deepStrictEqual(eventMap['custom_event'].properties, {
+      foo: { type: 'string' },
+      baz: { type: 'number' },
+      list: { 
+        type: 'array', 
+        items: { type: 'string' }
+      },
+      obj: {
+        type: 'object',
+        properties: {
+          a: { type: 'number' },
+          b: { type: 'number' },
+          c: { type: 'string' }
         }
       }
     });
