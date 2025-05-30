@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Tracking event extraction from Go function calls
+ * @module analyze/go/trackingExtractor
+ */
+
 const { ANALYTICS_SOURCES } = require('./constants');
 const { detectSource } = require('./trackingDetector');
 const { extractEventName } = require('./eventExtractor');

@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Event deduplication utilities for Go analytics tracking
+ * @module analyze/go/eventDeduplicator
+ */
+
 const { ANALYTICS_SOURCES } = require('./constants');
 
 /**

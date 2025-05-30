@@ -1,4 +1,9 @@
 /**
+ * @fileoverview Type context builder for Go AST analysis
+ * @module analyze/go/typeContext
+ */
+
+/**
  * Build a context of type information from the AST
  * @param {Array<Object>} ast - Abstract Syntax Tree of the Go file
  * @returns {Object} Type context object with 'functions' and 'globals' properties

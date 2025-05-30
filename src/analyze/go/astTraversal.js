@@ -1,3 +1,8 @@
+/**
+ * @fileoverview AST traversal utilities for Go code analysis
+ * @module analyze/go/astTraversal
+ */
+
 const { MAX_RECURSION_DEPTH } = require('./constants');
 const { extractTrackingEvent } = require('./trackingExtractor');
 

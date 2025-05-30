@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Property extraction utilities for Go analytics tracking
+ * @module analyze/go/propertyExtractor
+ */
+
 const { ANALYTICS_SOURCES } = require('./constants');
 const { extractStringValue, findStructLiteral, findStructField, extractFieldName, mapGoTypeToSchemaType } = require('./utils');
 

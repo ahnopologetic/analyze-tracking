@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Event extraction logic for Go analytics tracking
+ * @module analyze/go/eventExtractor
+ */
+
 const { ANALYTICS_SOURCES } = require('./constants');
 const { extractStringValue, findStructLiteral, findStructField, extractSnowplowValue } = require('./utils');
 

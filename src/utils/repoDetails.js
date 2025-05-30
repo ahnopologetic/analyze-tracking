@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Git repository utilities for extracting commit and repository information
+ * @module analyze-tracking/utils/repoDetails
+ */
+
 const fs = require('fs');
 const git = require('isomorphic-git');
 const { execSync } = require('child_process');

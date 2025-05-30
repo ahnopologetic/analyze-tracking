@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Analytics tracking detection for Go function calls
+ * @module analyze/go/trackingDetector
+ */
+
 const { ANALYTICS_SOURCES } = require('./constants');
 
 /**

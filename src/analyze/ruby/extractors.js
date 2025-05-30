@@ -1,5 +1,6 @@
 /**
- * Event name and property extraction for Ruby tracking calls
+ * @fileoverview Event and property extraction utilities for Ruby analytics
+ * @module analyze/ruby/extractors
  */
 
 const { getValueType } = require('./types');

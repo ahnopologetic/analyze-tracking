@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Directory analyzer for detecting analytics tracking across multiple programming languages
+ * @module analyze-tracking/analyze
+ */
+
 const path = require('path');
 const ts = require('typescript');
 const { getAllFiles } = require('../utils/fileProcessor');

@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Constants for Go analytics tracking analysis
+ * @module analyze/go/constants
+ */
+
 const ANALYTICS_SOURCES = {
   SEGMENT: 'segment',
   POSTHOG: 'posthog',

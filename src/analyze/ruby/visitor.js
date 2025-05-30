@@ -1,5 +1,6 @@
 /**
- * TrackingVisitor class for analyzing Ruby tracking events
+ * @fileoverview AST visitor for analyzing Ruby tracking events
+ * @module analyze/ruby/visitor
  */
 
 const { detectSource } = require('./detectors');

@@ -1,3 +1,8 @@
+/**
+ * @fileoverview YAML schema generator for analytics tracking events
+ * @module analyze-tracking/utils/yamlGenerator
+ */
+
 const fs = require('fs');
 const yaml = require('js-yaml');
 

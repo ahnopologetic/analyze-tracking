@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Utilities for creating LLM prompts with code snippets
+ * @module analyze-tracking/generateDescriptions/promptUtils
+ */
+
 const fs = require('fs');
 const path = require('path');
 

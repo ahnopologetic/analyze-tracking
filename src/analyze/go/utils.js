@@ -1,4 +1,9 @@
 /**
+ * @fileoverview Utility functions for Go AST analysis and type extraction
+ * @module analyze/go/utils
+ */
+
+/**
  * Extract string value from various node types
  * @param {Object} node - AST node that may contain a string value
  * @returns {string|null} Extracted string value without quotes, or null if not found
@@ -187,6 +192,17 @@ function extractSnowplowValue(expr) {
   }
   
   return null;
+}
+
+/**
+ * Resolves a variable to its value by looking it up in the type context
+ * @param {string} varName - The variable name to resolve
+ * @param {Object} typeContext - The type context containing variable types
+ * @param {string} currentFunction - The current function scope
+ * @returns {Object|null} The resolved value or null
+ */
+function resolveVariable(varName, typeContext, currentFunction) {
+  // ... existing code ...
 }
 
 module.exports = {

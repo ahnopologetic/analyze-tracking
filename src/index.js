@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Main entry point for the analytics tracking analyzer
+ * @module analyze-tracking
+ */
+
 const { analyzeDirectory } = require('./analyze');
 const { getRepoDetails } = require('./utils/repoDetails');
 const { generateYamlSchema } = require('./utils/yamlGenerator');

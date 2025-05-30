@@ -1,3 +1,8 @@
+/**
+ * @fileoverview LLM integration utilities for generating structured responses
+ * @module analyze-tracking/generateDescriptions/llmUtils
+ */
+
 const { PromptTemplate } = require('@langchain/core/prompts');
 
 async function sendPromptToLLM(prompt, schema, model) {

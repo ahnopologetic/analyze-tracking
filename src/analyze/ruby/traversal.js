@@ -1,5 +1,6 @@
 /**
- * AST traversal utilities for Ruby code analysis
+ * @fileoverview AST traversal utilities for Ruby code analysis
+ * @module analyze/ruby/traversal
  */
 
 /**

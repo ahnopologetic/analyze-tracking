@@ -1,3 +1,8 @@
+/**
+ * @fileoverview Zod schema utilities for structuring event descriptions
+ * @module analyze-tracking/generateDescriptions/schemaUtils
+ */
+
 const { z } = require('zod');
 
 function createEventDescriptionSchema(properties) {

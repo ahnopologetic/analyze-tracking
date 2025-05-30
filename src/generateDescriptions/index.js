@@ -1,3 +1,8 @@
+/**
+ * @fileoverview AI-powered description generator for analytics events
+ * @module analyze-tracking/generateDescriptions
+ */
+
 const { createPrompt } = require('./promptUtils');
 const { createEventDescriptionSchema } = require('./schemaUtils');
 const { sendPromptToLLM } = require('./llmUtils');

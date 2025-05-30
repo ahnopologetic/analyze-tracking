@@ -1,5 +1,6 @@
 /**
- * Analytics source detection for Ruby tracking calls
+ * @fileoverview Analytics source detection for Ruby tracking calls
+ * @module analyze/ruby/detectors
  */
 
 /**

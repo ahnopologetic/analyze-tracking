@@ -1,5 +1,6 @@
 /**
- * Type detection utilities for Ruby AST nodes
+ * @fileoverview Type definitions and constants for Ruby analytics analysis
+ * @module analyze/ruby/types
  */
 
 async function getValueType(node) {

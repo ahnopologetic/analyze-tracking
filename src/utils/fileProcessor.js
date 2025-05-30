@@ -1,3 +1,8 @@
+/**
+ * @fileoverview File system utilities for recursively reading directories
+ * @module analyze-tracking/utils/fileProcessor
+ */
+
 const fs = require('fs');
 const path = require('path');
 
