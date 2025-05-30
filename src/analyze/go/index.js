@@ -1,3 +1,8 @@
+/**
+ * Go analytics tracking analyzer
+ * Main entry point for analyzing Go files
+ */
+
 const fs = require('fs');
 const { extractGoAST } = require('./goAstParser');
 const { buildTypeContext } = require('./typeContext');
