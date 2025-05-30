@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const path = require('path');
-const { analyzeRubyFile } = require('../src/analyze/analyzeRubyFile');
+const { analyzeRubyFile } = require('../src/analyze/ruby');
 
 test.describe('analyzeRubyFile', () => {
   const fixturesDir = path.join(__dirname, 'fixtures');

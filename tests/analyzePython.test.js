@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const path = require('path');
 const fs = require('fs');
-const { analyzePythonFile } = require('../src/analyze/analyzePythonFile');
+const { analyzePythonFile } = require('../src/analyze/python');
 
 test.describe('analyzePythonFile', () => {
   const fixturesDir = path.join(__dirname, 'fixtures');

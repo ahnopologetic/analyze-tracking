@@ -1,5 +1,4 @@
 const fs = require('fs');
-const path = require('path');
 const { extractGoAST } = require('./go2json');
 
 async function analyzeGoFile(filePath, customFunction) {

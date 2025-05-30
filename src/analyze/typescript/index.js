@@ -1,5 +1,5 @@
 const ts = require('typescript');
-const { detectSourceTs, findWrappingFunctionTs, extractTsProperties, resolveIdentifierToInitializer, extractInterfaceProperties } = require('./helpers');
+const { detectSourceTs, findWrappingFunctionTs, extractTsProperties, resolveIdentifierToInitializer } = require('./helpers');
 
 function resolveUnresolvedTypes(properties, checker, sourceFile) {
   const resolved = {};

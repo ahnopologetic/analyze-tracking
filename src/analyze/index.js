@@ -1,11 +1,11 @@
 const path = require('path');
 const ts = require('typescript');
 const { getAllFiles } = require('../utils/fileProcessor');
-const { analyzeJsFile } = require('./analyzeJsFile');
-const { analyzeTsFile } = require('./analyzeTsFile');
-const { analyzePythonFile } = require('./analyzePythonFile');
-const { analyzeRubyFile } = require('./analyzeRubyFile');
-const { analyzeGoFile } = require('./analyzeGoFile');
+const { analyzeJsFile } = require('./javascript');
+const { analyzeTsFile } = require('./typescript');
+const { analyzePythonFile } = require('./python');
+const { analyzeRubyFile } = require('./ruby');
+const { analyzeGoFile } = require('./go');
 
 async function analyzeDirectory(dirPath, customFunction) {
   const allEvents = {};
