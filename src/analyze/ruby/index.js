@@ -13,7 +13,8 @@ let parse = null;
  * Analyzes a Ruby file for analytics tracking calls
  * @param {string} filePath - Path to the Ruby file to analyze
  * @param {string} customFunction - Optional custom tracking function name
- * @returns {Promise<Array>} - Array of tracking events found in the file
+ * @returns {Promise<Array>} Array of tracking events found in the file
+ * @throws {Error} If the file cannot be read or parsed
  */
 async function analyzeRubyFile(filePath, customFunction) {
   // Lazy load the Ruby Prism parser
