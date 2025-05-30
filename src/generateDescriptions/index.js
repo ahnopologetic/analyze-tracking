@@ -13,9 +13,9 @@ async function generateEventDescription(eventName, event, codebaseDir, model) {
   const eventDescriptionSchema = createEventDescriptionSchema(properties);
 
   // Send prompt to the LLM and get the structured response
-  const { descriptions } = await sendPromptToLLM(prompt, eventDescriptionSchema, model);
+  const result = await sendPromptToLLM(prompt, eventDescriptionSchema, model);
 
-  return { eventName, descriptions };
+  return { eventName, descriptions: result?.descriptions || null };
 }
 
 async function generateDescriptions(events, codebaseDir, model) {

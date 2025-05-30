@@ -18,7 +18,7 @@ async function sendPromptToLLM(prompt, schema, model) {
       descriptions: response,
     };
   } catch (error) {
-    console.error('Error during LLM response parsing:', error);
+    console.error('Error during LLM response parsing:', error.message);
     return null;
   }
 }

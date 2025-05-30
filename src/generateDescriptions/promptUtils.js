@@ -43,7 +43,10 @@ function getCodeSnippet(filePath, lineNumber, contextLines = 5) {
     const snippetLines = lines.slice(startLine, endLine);
     return snippetLines.join('\n');
   } catch (e) {
-    console.error(`Failed to read file ${filePath}:`, e);
+    // Only log errors if not in test mode
+    if (process.env.NODE_ENV !== 'test' && !process.env.NODE_TEST_CONTEXT) {
+      console.error(`Failed to read file ${filePath}:`, e);
+    }
     return '';
   }
 }
