@@ -1,6 +1,6 @@
 /**
- * Ruby analytics tracking analyzer
- * Main entry point for analyzing Ruby files
+ * @fileoverview Ruby analytics tracking analyzer - main entry point
+ * @module analyze/ruby
  */
 
 const fs = require('fs');

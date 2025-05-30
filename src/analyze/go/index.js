@@ -1,6 +1,6 @@
 /**
- * Go analytics tracking analyzer
- * Main entry point for analyzing Go files
+ * @fileoverview Go analytics tracking analyzer - main entry point
+ * @module analyze/go
  */
 
 const fs = require('fs');

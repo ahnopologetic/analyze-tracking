@@ -1,6 +1,6 @@
 /**
- * Python analytics tracking analyzer
- * Main entry point for analyzing Python files
+ * @fileoverview Python analytics tracking analyzer - main entry point
+ * @module analyze/python
  */
 
 const fs = require('fs');
