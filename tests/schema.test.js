@@ -11,7 +11,7 @@ const SCHEMA_PATH = path.join(__dirname, '..', 'schema.json');
 
 // Helper function to run CLI and capture output
 function runCLI(targetDir, customFunction, outputFile) {
-  const command = `node "${CLI_PATH}" "${targetDir}" --customFunction "${customFunction}" --output "${outputFile}"`;
+  const command = `node --no-warnings=ExperimentalWarning "${CLI_PATH}" "${targetDir}" --customFunction "${customFunction}" --output "${outputFile}"`;
   try {
     execSync(command, { encoding: 'utf8' });
     return true;

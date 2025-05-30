@@ -12,6 +12,7 @@ console.log('Found test files:', testFiles.map(f => path.basename(f)).join(', ')
 
 // Run all tests with flag for WASM support
 const tests = spawn('node', [
+  '--no-warnings=ExperimentalWarning',
   '--experimental-vm-modules',
   '--test',
   ...testFiles
