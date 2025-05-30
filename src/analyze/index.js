@@ -1,6 +1,6 @@
 const path = require('path');
 const ts = require('typescript');
-const { getAllFiles } = require('../fileProcessor');
+const { getAllFiles } = require('../utils/fileProcessor');
 const { analyzeJsFile } = require('./analyzeJsFile');
 const { analyzeTsFile } = require('./analyzeTsFile');
 const { analyzePythonFile } = require('./analyzePythonFile');

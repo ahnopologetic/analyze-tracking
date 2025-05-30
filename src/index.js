@@ -1,6 +1,6 @@
 const { analyzeDirectory } = require('./analyze');
-const { getRepoDetails } = require('./repoDetails');
-const { generateYamlSchema } = require('./yamlGenerator');
+const { getRepoDetails } = require('./utils/repoDetails');
+const { generateYamlSchema } = require('./utils/yamlGenerator');
 const { generateDescriptions } = require('./generateDescriptions');
 
 const { ChatOpenAI } = require('@langchain/openai');

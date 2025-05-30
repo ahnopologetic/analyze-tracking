@@ -15,7 +15,8 @@
     "test:go": "node --test tests/analyzeGoFile.test.js",
     "test:cli": "node --test tests/cli.test.js",
     "test:schema": "node --test tests/schema.test.js",
-    "test:generateDescriptions": "node --test tests/generateDescriptions.test.js"
+    "test:generateDescriptions": "node --test tests/generateDescriptions.test.js",
+    "test:utils": "node --test tests/utils.test.js"
   },
   "files": [
     "bin",
