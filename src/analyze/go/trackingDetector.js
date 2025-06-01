@@ -59,8 +59,14 @@ function detectSource(callNode, customFunction) {
   }
   
   // Check for custom function calls
-  if (customFunction && callNode.func.tag === 'ident' && callNode.func.value === customFunction) {
-    return ANALYTICS_SOURCES.CUSTOM;
+  if (customFunction && callNode.func.tag === 'ident') {
+    if (customFunction instanceof RegExp) {
+      if (customFunction.test(callNode.func.value)) {
+        return ANALYTICS_SOURCES.CUSTOM;
+      }
+    } else if (callNode.func.value === customFunction) {
+      return ANALYTICS_SOURCES.CUSTOM;
+    }
   }
   
   return null;

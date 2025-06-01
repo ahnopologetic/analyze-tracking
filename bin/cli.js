@@ -131,10 +131,27 @@ if (format !== 'yaml' && format !== 'json') {
   process.exit(1);
 }
 
+// Parse customFunction as regex if in /pattern/ form, otherwise leave as string
+let parsedCustomFunction = customFunction;
+if (
+  typeof customFunction === 'string' &&
+  customFunction.length > 2 &&
+  customFunction.startsWith('/') &&
+  customFunction.endsWith('/')
+) {
+  try {
+    const pattern = customFunction.slice(1, -1);
+    parsedCustomFunction = new RegExp(pattern);
+  } catch (e) {
+    console.error('Invalid regex for customFunction:', customFunction);
+    process.exit(1);
+  }
+}
+
 run(
   path.resolve(targetDir),
   output,
-  customFunction,
+  parsedCustomFunction,
   customSourceDetails,
   generateDescription,
   provider,

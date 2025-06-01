@@ -36,7 +36,13 @@ function detectSource(node, customFunction = null) {
   if (node.name === 'track_struct_event') return 'snowplow';
   
   // Custom tracking function
-  if (customFunction && node.name === customFunction) return 'custom';
+  if (customFunction) {
+    if (customFunction instanceof RegExp) {
+      if (customFunction.test(node.name)) return 'custom';
+    } else if (node.name === customFunction) {
+      return 'custom';
+    }
+  }
 
   return null;
 }

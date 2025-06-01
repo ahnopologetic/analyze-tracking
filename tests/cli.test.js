@@ -356,4 +356,85 @@ test.describe('CLI End-to-End Tests', () => {
     }
     assert.ok(errorCaught, 'CLI should fail for invalid format');
   });
+  
+  // In all regex customFunction tests, use the same expected YAML as the string-based tests
+  // JavaScript
+  const jsExpectedFile = path.join(fixturesDir, 'javascript', 'tracking-schema-javascript.yaml');
+  // TypeScript
+  const tsExpectedFile = path.join(fixturesDir, 'typescript', 'tracking-schema-typescript.yaml');
+  // Python
+  const pyExpectedFile = path.join(fixturesDir, 'python', 'tracking-schema-python.yaml');
+  // Ruby
+  const rbExpectedFile = path.join(fixturesDir, 'ruby', 'tracking-schema-ruby.yaml');
+  // Go
+  const goExpectedFile = path.join(fixturesDir, 'go', 'tracking-schema-go.yaml');
+  // All
+  const allExpectedFile = path.join(fixturesDir, 'tracking-schema-all.yaml');
+
+  test('should analyze JavaScript files using a regex customFunction and generate a tracking schema', async () => {
+    const targetDir = path.join(fixturesDir, 'javascript');
+    const outputFile = path.join(tempDir, 'tracking-schema-javascript-regex-test.yaml');
+    // Use the same expected file as the string-based test
+    const expectedFile = jsExpectedFile;
+    const regexPattern = '/^track.*/';
+    const success = runCLI(targetDir, regexPattern, outputFile);
+    assert.ok(success, 'CLI should run successfully with regex customFunction');
+    assert.ok(fs.existsSync(outputFile), 'Output file should be created');
+    compareYAMLFiles(outputFile, expectedFile);
+  });
+
+  test('should analyze TypeScript files using a regex customFunction and generate a tracking schema', async () => {
+    const targetDir = path.join(fixturesDir, 'typescript');
+    const outputFile = path.join(tempDir, 'tracking-schema-typescript-regex-test.yaml');
+    const expectedFile = tsExpectedFile;
+    const regexPattern = '/^track.*/';
+    const success = runCLI(targetDir, regexPattern, outputFile);
+    assert.ok(success, 'CLI should run successfully with regex customFunction');
+    assert.ok(fs.existsSync(outputFile), 'Output file should be created');
+    compareYAMLFiles(outputFile, expectedFile);
+  });
+
+  test('should analyze Python files using a regex customFunction and generate a tracking schema', async () => {
+    const targetDir = path.join(fixturesDir, 'python');
+    const outputFile = path.join(tempDir, 'tracking-schema-python-regex-test.yaml');
+    const expectedFile = pyExpectedFile;
+    const regexPattern = '/^track.*/';
+    const success = runCLI(targetDir, regexPattern, outputFile);
+    assert.ok(success, 'CLI should run successfully with regex customFunction');
+    assert.ok(fs.existsSync(outputFile), 'Output file should be created');
+    compareYAMLFiles(outputFile, expectedFile);
+  });
+
+  test('should analyze Ruby files using a regex customFunction and generate a tracking schema', async () => {
+    const targetDir = path.join(fixturesDir, 'ruby');
+    const outputFile = path.join(tempDir, 'tracking-schema-ruby-regex-test.yaml');
+    const expectedFile = rbExpectedFile;
+    const regexPattern = '/^track.*/';
+    const success = runCLI(targetDir, regexPattern, outputFile);
+    assert.ok(success, 'CLI should run successfully with regex customFunction');
+    assert.ok(fs.existsSync(outputFile), 'Output file should be created');
+    compareYAMLFiles(outputFile, expectedFile);
+  });
+
+  test('should analyze Go files using a regex customFunction and generate a tracking schema', async () => {
+    const targetDir = path.join(fixturesDir, 'go');
+    const outputFile = path.join(tempDir, 'tracking-schema-go-regex-test.yaml');
+    const expectedFile = goExpectedFile;
+    const regexPattern = '/^track.*/';
+    const success = runCLI(targetDir, regexPattern, outputFile);
+    assert.ok(success, 'CLI should run successfully with regex customFunction');
+    assert.ok(fs.existsSync(outputFile), 'Output file should be created');
+    compareYAMLFiles(outputFile, expectedFile);
+  });
+
+  test('should analyze all languages together using a regex customFunction and generate a combined tracking schema', async () => {
+    const targetDir = fixturesDir; // Use entire fixtures directory
+    const outputFile = path.join(tempDir, 'tracking-schema-all-regex-test.yaml');
+    const expectedFile = allExpectedFile;
+    const regexPattern = '/^track.*/';
+    const success = runCLI(targetDir, regexPattern, outputFile);
+    assert.ok(success, 'CLI should run successfully with regex customFunction');
+    assert.ok(fs.existsSync(outputFile), 'Output file should be created');
+    compareYAMLFiles(outputFile, expectedFile);
+  });
 });

@@ -43,8 +43,11 @@ function detectAnalyticsSource(node, customFunction) {
  * @returns {boolean}
  */
 function isCustomFunction(node, customFunction) {
-  return node.callee.type === NODE_TYPES.IDENTIFIER && 
-         node.callee.name === customFunction;
+  if (node.callee.type !== NODE_TYPES.IDENTIFIER) return false;
+  if (customFunction instanceof RegExp) {
+    return customFunction.test(node.callee.name);
+  }
+  return node.callee.name === customFunction;
 }
 
 /**

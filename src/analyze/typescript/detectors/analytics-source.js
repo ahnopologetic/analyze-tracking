@@ -50,7 +50,13 @@ function isCustomFunction(node, customFunction) {
     ts.isElementAccessExpression(node.expression) || // For array/object access like trackers['analytics'].track()
     (ts.isPropertyAccessExpression(node.expression?.expression) && ts.isThisExpression(node.expression.expression.expression)); // For class methods like this.analytics.track()
 
-  return canBeCustomFunction && node.expression.getText().includes(customFunction);
+  if (!canBeCustomFunction) return false;
+
+  const functionName = node.expression.getText();
+  if (customFunction instanceof RegExp) {
+    return customFunction.test(functionName);
+  }
+  return functionName === customFunction;
 }
 
 /**

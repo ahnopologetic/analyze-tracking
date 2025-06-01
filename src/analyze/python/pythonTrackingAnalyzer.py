@@ -69,15 +69,17 @@ class TrackingVisitor(ast.NodeVisitor):
         var_types: Dictionary of variable types in the current scope
         var_types_stack: Stack of variable type scopes
         custom_function: Optional name of a custom tracking function
+        custom_function_is_regex: Flag to indicate if custom function is a regex
     """
     
-    def __init__(self, filepath: str, custom_function: Optional[str] = None):
+    def __init__(self, filepath: str, custom_function: Optional[str] = None, custom_function_is_regex: bool = False):
         """
         Initialize the tracking visitor.
         
         Args:
             filepath: Path to the Python file being analyzed
             custom_function: Optional name of a custom tracking function to detect
+            custom_function_is_regex: Flag to indicate if custom function is a regex
         """
         self.events: List[AnalyticsEvent] = []
         self.filepath = filepath
@@ -86,6 +88,12 @@ class TrackingVisitor(ast.NodeVisitor):
         self.var_types: Dict[str, PropertyType] = {}
         self.var_types_stack: List[Dict[str, PropertyType]] = []
         self.custom_function = custom_function
+        self.custom_function_is_regex = custom_function_is_regex
+        if custom_function_is_regex and custom_function:
+            import re
+            self._custom_function_regex = re.compile(custom_function)
+        else:
+            self._custom_function_regex = None
         
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """
@@ -307,8 +315,12 @@ class TrackingVisitor(ast.NodeVisitor):
             return 'snowplow'
         
         # Check for custom tracking function
-        if self.custom_function and func_name == self.custom_function:
-            return 'custom'
+        if self.custom_function:
+            if self.custom_function_is_regex and self._custom_function_regex:
+                if self._custom_function_regex.match(func_name):
+                    return 'custom'
+            elif func_name == self.custom_function:
+                return 'custom'
         
         return None
     
@@ -755,7 +767,7 @@ class TrackingVisitor(ast.NodeVisitor):
             return "null"
         return "any"
 
-def analyze_python_code(code: str, filepath: str, custom_function: Optional[str] = None) -> str:
+def analyze_python_code(code: str, filepath: str, custom_function: Optional[str] = None, custom_function_is_regex: bool = False) -> str:
     """
     Analyze Python code for analytics tracking calls.
     
@@ -766,16 +778,17 @@ def analyze_python_code(code: str, filepath: str, custom_function: Optional[str]
         code: The Python source code to analyze
         filepath: Path to the file being analyzed
         custom_function: Optional name of a custom tracking function
+        custom_function_is_regex: Flag to indicate if custom function is a regex
         
     Returns:
         JSON string containing array of tracking events
     """
     try:
         # Parse the Python code
-        tree = ast.parse(code)
+        tree = ast.parse(code, filename=filepath)
         
         # Create visitor and analyze
-        visitor = TrackingVisitor(filepath, custom_function)
+        visitor = TrackingVisitor(filepath, custom_function, custom_function_is_regex)
         visitor.visit(tree)
         
         # Return events as JSON

@@ -83,7 +83,13 @@ async function analyzePythonFile(filePath, customFunction = null) {
     // Set up Python environment with necessary variables
     py.globals.set('code', code);
     py.globals.set('filepath', filePath);
-    py.globals.set('custom_function', customFunction);
+    if (customFunction instanceof RegExp) {
+      py.globals.set('custom_function', customFunction.source);
+      py.globals.set('custom_function_is_regex', true);
+    } else {
+      py.globals.set('custom_function', customFunction);
+      py.globals.set('custom_function_is_regex', false);
+    }
     // Set __name__ to null to prevent execution of main block
     py.globals.set('__name__', null);
     
