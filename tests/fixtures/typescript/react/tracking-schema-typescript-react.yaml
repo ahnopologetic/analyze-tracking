@@ -1,0 +1,136 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/fliskdata/analyze-tracking/main/schema.json
+version: 1
+source:
+  repository: git@github.com:fliskdata/analyze-tracking.git
+  commit: d3774b76a3d1528c76c4bdb500dc32ee508e6381
+  timestamp: '2025-05-29T15:55:59Z'
+events:
+  cart_viewed:
+    implementations:
+      - path: main.tsx
+        line: 15
+        function: ShoppingCart
+        destination: posthog
+    properties:
+      item_count:
+        type: number
+      total_value:
+        type: number
+
+  add_to_cart:
+    implementations:
+      - path: main.tsx
+        line: 26
+        function: handleAddToCart
+        destination: segment
+    properties:
+      product_id:
+        type: string
+      product_name:
+        type: string
+      price:
+        type: number
+
+  item_added:
+    implementations:
+      - path: main.tsx
+        line: 34
+        function: handleAddToCart
+        destination: amplitude
+    properties:
+      item_details:
+        type: object
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+          price:
+            type: number
+          sku:
+            type: string
+      cart_size:
+        type: number
+
+  remove_from_cart:
+    implementations:
+      - path: main.tsx
+        line: 44
+        function: removeFromCart
+        destination: mixpanel
+    properties:
+      product_id:
+        type: string
+      timestamp:
+        type: string
+
+  begin_checkout:
+    implementations:
+      - path: main.tsx
+        line: 54
+        function: handleCheckout
+        destination: googleanalytics
+    properties:
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      value:
+        type: number
+      currency:
+        type: string
+
+  checkout_started:
+    implementations:
+      - path: main.tsx
+        line: 62
+        function: handleCheckout
+        destination: rudderstack
+    properties:
+      products:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      total_items:
+        type: number
+
+  InitiateCheckout:
+    implementations:
+      - path: main.tsx
+        line: 69
+        function: handleCheckout
+        destination: mparticle
+    properties:
+      cart_items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      checkout_step:
+        type: number

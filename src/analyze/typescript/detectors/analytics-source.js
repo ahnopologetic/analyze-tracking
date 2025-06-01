@@ -44,8 +44,13 @@ function detectAnalyticsSource(node, customFunction) {
  * @returns {boolean}
  */
 function isCustomFunction(node, customFunction) {
-  return ts.isIdentifier(node.expression) && 
-         node.expression.escapedText === customFunction;
+  const canBeCustomFunction = ts.isIdentifier(node.expression) ||
+    ts.isPropertyAccessExpression(node.expression) ||
+    ts.isCallExpression(node.expression) || // For chained calls like getTracker().track()
+    ts.isElementAccessExpression(node.expression) || // For array/object access like trackers['analytics'].track()
+    (ts.isPropertyAccessExpression(node.expression?.expression) && ts.isThisExpression(node.expression.expression.expression)); // For class methods like this.analytics.track()
+
+  return canBeCustomFunction && node.expression.getText().includes(customFunction);
 }
 
 /**
@@ -59,7 +64,7 @@ function detectFunctionBasedProvider(node) {
   }
 
   const functionName = node.expression.escapedText;
-  
+
   for (const provider of Object.values(ANALYTICS_PROVIDERS)) {
     if (provider.type === 'function' && provider.functionName === functionName) {
       return provider.name;
