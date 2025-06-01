@@ -184,10 +184,25 @@ function getBasicTypeOfArrayElement(checker, element) {
   return 'any';
 }
 
+/**
+ * Checks if a CallExpression is a React hook (useCallback, useState, etc)
+ * @param {Object} node - CallExpression node
+ * @param {string[]} hookNames - List of hook names to check
+ * @returns {boolean}
+ */
+function isReactHookCall(node, hookNames = ['useCallback', 'useState', 'useEffect', 'useMemo', 'useReducer']) {
+  if (!node || !node.expression) return false;
+  if (ts.isIdentifier(node.expression)) {
+    return hookNames.includes(node.expression.escapedText);
+  }
+  return false;
+}
+
 module.exports = {
   resolveIdentifierToInitializer,
   getTypeOfNode,
   resolveTypeToProperties,
   isCustomType,
-  getBasicTypeOfArrayElement
+  getBasicTypeOfArrayElement,
+  isReactHookCall
 };

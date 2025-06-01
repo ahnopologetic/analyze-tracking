@@ -72,6 +72,15 @@ function findParentFunctionName(node) {
   
   // Variable declaration: const myFunc = () => {}
   if (ts.isVariableDeclaration(parent) && parent.name) {
+    // Check if initializer is a useCallback call
+    if (
+      parent.initializer &&
+      ts.isCallExpression(parent.initializer) &&
+      ts.isIdentifier(parent.initializer.expression) &&
+      parent.initializer.expression.escapedText === 'useCallback'
+    ) {
+      return `useCallback(${parent.name.escapedText})`;
+    }
     return parent.name.escapedText;
   }
   

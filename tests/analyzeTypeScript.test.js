@@ -491,15 +491,15 @@ test.describe('analyzeTsFile', () => {
     assert.strictEqual(events.length, 8);
 
     // Test PostHog event
-    // const posthogEvent = events.find(e => e.source === 'posthog');
-    // assert.ok(posthogEvent);
-    // assert.strictEqual(posthogEvent.eventName, 'cart_viewed');
-    // assert.strictEqual(posthogEvent.functionName, 'anonymous-callback-0');
-    // assert.strictEqual(posthogEvent.line, 15);
-    // assert.deepStrictEqual(posthogEvent.properties, {
-    //   item_count: { type: 'number' },
-    //   total_value: { type: 'number' }
-    // });
+    const posthogEvent = events.find(e => e.source === 'posthog');
+    assert.ok(posthogEvent);
+    assert.strictEqual(posthogEvent.eventName, 'cart_viewed');
+    assert.strictEqual(posthogEvent.functionName, 'anonymous-callback-0');
+    assert.strictEqual(posthogEvent.line, 15);
+    assert.deepStrictEqual(posthogEvent.properties, {
+      item_count: { type: 'number' },
+      total_value: { type: 'number' }
+    });
 
     // Test Segment event
     const segmentEvent = events.find(e => e.source === 'segment');
@@ -537,7 +537,7 @@ test.describe('analyzeTsFile', () => {
     assert.ok(mixpanelEvent);
     assert.strictEqual(mixpanelEvent.eventName, 'remove_from_cart');
     assert.strictEqual(mixpanelEvent.functionName, 'removeFromCart');
-    assert.strictEqual(mixpanelEvent.line, 44);
+    assert.strictEqual(mixpanelEvent.line, 45);
     assert.deepStrictEqual(mixpanelEvent.properties, {
       product_id: { type: 'string' },
       timestamp: { type: 'string' }
@@ -548,9 +548,15 @@ test.describe('analyzeTsFile', () => {
     assert.ok(gaEvent);
     assert.strictEqual(gaEvent.eventName, 'begin_checkout');
     assert.strictEqual(gaEvent.functionName, 'handleCheckout');
-    assert.strictEqual(gaEvent.line, 54);
+    assert.strictEqual(gaEvent.line, 56);
     assert.deepStrictEqual(gaEvent.properties, {
-      items: { type: 'array' },
+      items: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: { id: { type: 'string' }, name: { type: 'string' }, price: { type: 'number' }, sku: { type: 'string | undefined' } }
+        }
+      },
       value: { type: 'number' },
       currency: { type: 'string' }
     });
@@ -560,9 +566,15 @@ test.describe('analyzeTsFile', () => {
     assert.ok(rudderstackEvent);
     assert.strictEqual(rudderstackEvent.eventName, 'checkout_started');
     assert.strictEqual(rudderstackEvent.functionName, 'handleCheckout');
-    assert.strictEqual(rudderstackEvent.line, 62);
+    assert.strictEqual(rudderstackEvent.line, 63);
     assert.deepStrictEqual(rudderstackEvent.properties, {
-      products: { type: 'array' },
+      products: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: { id: { type: 'string' }, name: { type: 'string' }, price: { type: 'number' }, sku: { type: 'string | undefined' } }
+        }
+      },
       total_items: { type: 'number' }
     });
 
@@ -573,7 +585,13 @@ test.describe('analyzeTsFile', () => {
     assert.strictEqual(mparticleEvent.functionName, 'handleCheckout');
     assert.strictEqual(mparticleEvent.line, 69);
     assert.deepStrictEqual(mparticleEvent.properties, {
-      cart_items: { type: 'array' },
+      cart_items: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: { id: { type: 'string' }, name: { type: 'string' }, price: { type: 'number' }, sku: { type: 'string | undefined' } }
+        }
+      },
       checkout_step: { type: 'number' }
     });
   });
