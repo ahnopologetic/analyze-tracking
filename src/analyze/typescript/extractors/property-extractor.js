@@ -116,6 +116,38 @@ function extractShorthandPropertySchema(checker, prop) {
   if (!symbol) {
     return { type: 'any' };
   }
+  const declarations = symbol.declarations || [];
+  for (const decl of declarations) {
+    // Detect destructuring from useState: const [state, setState] = useState<Type>(...)
+    if (
+      ts.isBindingElement(decl) &&
+      decl.parent &&
+      ts.isArrayBindingPattern(decl.parent) &&
+      decl.parent.parent &&
+      ts.isVariableDeclaration(decl.parent.parent) &&
+      decl.parent.parent.initializer &&
+      ts.isCallExpression(decl.parent.parent.initializer) &&
+      ts.isIdentifier(decl.parent.parent.initializer.expression) &&
+      decl.parent.parent.initializer.expression.escapedText === 'useState'
+    ) {
+      // Try to get type from generic argument
+      const callExpr = decl.parent.parent.initializer;
+      if (callExpr.typeArguments && callExpr.typeArguments.length > 0) {
+        const typeNode = callExpr.typeArguments[0];
+        const type = checker.getTypeFromTypeNode(typeNode);
+        const typeString = checker.typeToString(type);
+        return resolveTypeToProperties(checker, typeString);
+      }
+      // Fallback: get type from initial value
+      if (callExpr.arguments && callExpr.arguments.length > 0) {
+        const initType = checker.getTypeAtLocation(callExpr.arguments[0]);
+        const typeString = checker.typeToString(initType);
+        return resolveTypeToProperties(checker, typeString);
+      }
+      // Default to any
+      return { type: 'any' };
+    }
+  }
   
   const propType = checker.getTypeAtLocation(prop.name);
   const typeString = checker.typeToString(propType);
