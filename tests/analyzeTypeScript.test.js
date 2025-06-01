@@ -481,7 +481,7 @@ test.describe('analyzeTsFile', () => {
   });
 
   test('should correctly analyze React TypeScript file with multiple tracking providers', () => {
-    const reactFilePath = path.join(fixturesDir, 'typescript', 'react', 'main.tsx');
+    const reactFilePath = path.join(fixturesDir, 'typescript-react', 'main.tsx');
     const program = createProgram(reactFilePath);
     const events = analyzeTsFile(reactFilePath, program);
 

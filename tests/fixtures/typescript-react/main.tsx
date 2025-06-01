@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import type { Product } from '../main';
+import type { Product } from '../typescript/main';
 
 interface CartProps {
     products: Product[];

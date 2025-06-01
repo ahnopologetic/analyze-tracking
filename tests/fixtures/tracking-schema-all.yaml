@@ -18,6 +18,21 @@ events:
         type: string
       is_free_trial:
         type: boolean
+  Update:
+    implementations:
+      - destination: snowplow
+        function: trackCartUpdate
+        line: 88
+        path: typescript-react/main.tsx
+    properties:
+      category:
+        type: string
+      label:
+        type: string
+      property:
+        type: string
+      value:
+        type: number
   some_event:
     implementations:
       - path: go/main.go
@@ -748,3 +763,126 @@ events:
             type: string
           retry:
             type: boolean
+  cart_viewed:
+    implementations:
+      - path: typescript-react/main.tsx
+        line: 15
+        function: anonymous-callback-0
+        destination: posthog
+    properties:
+      item_count:
+        type: number
+      total_value:
+        type: number
+  add_to_cart:
+    implementations:
+      - path: typescript-react/main.tsx
+        line: 27
+        function: anonymous-callback-0
+        destination: segment
+    properties:
+      product_id:
+        type: string
+      product_name:
+        type: string  
+      price:
+        type: number
+  item_added:
+    implementations:
+      - path: typescript-react/main.tsx
+        line: 34
+        function: anonymous-callback-0
+        destination: amplitude
+    properties:
+      item_details:
+        type: object
+        properties:
+          id:
+            type: string
+          name:
+            type: string
+          price:
+            type: number
+          sku:
+            type: string
+      cart_size:
+        type: number
+  remove_from_cart:
+    implementations:
+      - path: typescript-react/main.tsx
+        line: 45
+        function: removeFromCart
+        destination: mixpanel
+    properties:
+      product_id:
+        type: string
+      timestamp:
+        type: string
+  begin_checkout:
+    implementations:
+      - path: typescript-react/main.tsx
+        line: 56
+        function: handleCheckout
+        destination: googleanalytics
+    properties:
+      items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      value:
+        type: number
+      currency:
+        type: string
+  checkout_started:
+    implementations:
+      - path: typescript-react/main.tsx
+        line: 63
+        function: handleCheckout
+        destination: rudderstack
+    properties:
+      products:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      total_items:
+        type: number
+  InitiateCheckout:
+    implementations:
+      - path: typescript-react/main.tsx
+        line: 69
+        function: handleCheckout
+        destination: mparticle
+    properties:
+      cart_items:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            price:
+              type: number
+            sku:
+              type: string
+      checkout_step:
+        type: number
