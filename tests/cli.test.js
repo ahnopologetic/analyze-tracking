@@ -41,9 +41,42 @@ function compareYAMLFiles(actualPath, expectedPath) {
   assert.ok(actual.source.repository);
   
   // Compare events using deep equality (order-insensitive)
-  assert.ok(_.isEqual(actual.events, expected.events), 
-    'Events do not match. Actual: ' + JSON.stringify(actual.events, null, 2) + 
-    '\nExpected: ' + JSON.stringify(expected.events, null, 2));
+  const diff = {};
+  for (const eventName in expected.events) {
+    if (!actual.events[eventName]) {
+      diff[eventName] = { missing: true };
+      continue;
+    }
+    
+    const actualEvent = actual.events[eventName];
+    const expectedEvent = expected.events[eventName];
+    
+    if (!_.isEqual(actualEvent, expectedEvent)) {
+      diff[eventName] = {
+        properties: {
+          missing: Object.keys(expectedEvent.properties || {}).filter(p => !actualEvent.properties?.[p]),
+          unexpected: Object.keys(actualEvent.properties || {}).filter(p => !expectedEvent.properties?.[p])
+        },
+        implementations: {
+          missing: (expectedEvent.implementations || []).filter(impl => 
+            !(actualEvent.implementations || []).some(a => _.isEqual(a, impl))),
+          unexpected: (actualEvent.implementations || []).filter(impl =>
+            !(expectedEvent.implementations || []).some(e => _.isEqual(e, impl)))
+        }
+      };
+    }
+  }
+
+  // Check for unexpected events in actual
+  for (const eventName in actual.events) {
+    if (!expected.events[eventName]) {
+      diff[eventName] = { unexpected: true };
+    }
+  }
+
+  const hasDiffs = Object.keys(diff).length > 0;
+  assert.ok(!hasDiffs, 
+    'Events do not match. Differences:\n' + JSON.stringify(diff, null, 2));
 }
 
 test.describe('CLI End-to-End Tests', () => {
