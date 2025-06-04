@@ -767,7 +767,7 @@ events:
     implementations:
       - path: typescript-react/main.tsx
         line: 15
-        function: anonymous-callback-0
+        function: useEffect()
         destination: posthog
     properties:
       item_count:
@@ -778,7 +778,7 @@ events:
     implementations:
       - path: typescript-react/main.tsx
         line: 27
-        function: anonymous-callback-0
+        function: useCallback(handleAddToCart)
         destination: segment
     properties:
       product_id:
@@ -791,7 +791,7 @@ events:
     implementations:
       - path: typescript-react/main.tsx
         line: 34
-        function: anonymous-callback-0
+        function: useCallback(handleAddToCart)
         destination: amplitude
     properties:
       item_details:
