@@ -4,16 +4,7 @@
  */
 
 const ts = require('typescript');
-
-const REACT_HOOKS = new Set([
-  'useCallback',
-  'useEffect',
-  'useMemo',
-  'useLayoutEffect',
-  'useReducer',
-  'useState',
-  // Add more React hooks as needed
-]);
+const { isReactHookCall } = require('./type-resolver');
 
 /**
  * Finds the name of the function that wraps a given node
@@ -22,17 +13,17 @@ const REACT_HOOKS = new Set([
  */
 function findWrappingFunction(node) {
   let current = node;
-  
+
   while (current) {
     const functionName = extractFunctionName(current);
-    
+
     if (functionName) {
       return functionName;
     }
-    
+
     current = current.parent;
   }
-  
+
   return 'global';
 }
 
@@ -46,27 +37,27 @@ function extractFunctionName(node) {
   if (ts.isFunctionDeclaration(node)) {
     return node.name ? node.name.escapedText : 'anonymous';
   }
-  
+
   // Method declaration in class
   if (ts.isMethodDeclaration(node)) {
     return node.name ? node.name.escapedText : 'anonymous';
   }
-  
+
   // Arrow function or function expression
   if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) {
     return findParentFunctionName(node) || 'anonymous';
   }
-  
+
   // Constructor
   if (ts.isConstructorDeclaration(node)) {
     return 'constructor';
   }
-  
+
   // Getter/Setter
   if (ts.isGetAccessorDeclaration(node) || ts.isSetAccessorDeclaration(node)) {
     return node.name ? `${ts.isGetAccessorDeclaration(node) ? 'get' : 'set'} ${node.name.escapedText}` : 'anonymous';
   }
-  
+
   return null;
 }
 
@@ -77,13 +68,13 @@ function extractFunctionName(node) {
  */
 function findParentFunctionName(node) {
   const parent = node.parent;
-  
+
   if (!parent) return null;
-  
+
   if (
     ts.isCallExpression(parent) &&
     ts.isIdentifier(parent.expression) &&
-    REACT_HOOKS.has(parent.expression.escapedText)
+    isReactHookCall(parent)
   ) {
     if (
       parent.parent &&
@@ -94,7 +85,7 @@ function findParentFunctionName(node) {
     }
     return `${parent.expression.escapedText}()`;
   }
-  
+
   // Variable declaration: const myFunc = () => {}
   if (ts.isVariableDeclaration(parent) && parent.name) {
     // Check if initializer is a recognized React hook call
@@ -108,7 +99,7 @@ function findParentFunctionName(node) {
     }
     return parent.name.escapedText;
   }
-  
+
   // Property assignment: { myFunc: () => {} }
   if (ts.isPropertyAssignment(parent) && parent.name) {
     if (ts.isIdentifier(parent.name)) {
@@ -118,20 +109,20 @@ function findParentFunctionName(node) {
       return parent.name.text;
     }
   }
-  
+
   // Method property in object literal: { myFunc() {} }
   if (ts.isMethodDeclaration(parent) && parent.name) {
     return parent.name.escapedText;
   }
-  
+
   // Binary expression assignment: obj.myFunc = () => {}
-  if (ts.isBinaryExpression(parent) && 
-      parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+  if (ts.isBinaryExpression(parent) &&
+    parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
     if (ts.isPropertyAccessExpression(parent.left)) {
       return parent.left.name.escapedText;
     }
   }
-  
+
   // Call expression argument: someFunc(() => {})
   if (ts.isCallExpression(parent)) {
     const argIndex = parent.arguments.indexOf(node);
@@ -139,7 +130,7 @@ function findParentFunctionName(node) {
       return `anonymous-callback-${argIndex}`;
     }
   }
-  
+
   return null;
 }
 
