@@ -494,7 +494,7 @@ test.describe('analyzeTsFile', () => {
     const posthogEvent = events.find(e => e.source === 'posthog');
     assert.ok(posthogEvent);
     assert.strictEqual(posthogEvent.eventName, 'cart_viewed');
-    assert.strictEqual(posthogEvent.functionName, 'anonymous-callback-0');
+    assert.strictEqual(posthogEvent.functionName, 'useEffect()');
     assert.strictEqual(posthogEvent.line, 15);
     assert.deepStrictEqual(posthogEvent.properties, {
       item_count: { type: 'number' },
@@ -505,7 +505,7 @@ test.describe('analyzeTsFile', () => {
     const segmentEvent = events.find(e => e.source === 'segment');
     assert.ok(segmentEvent);
     assert.strictEqual(segmentEvent.eventName, 'add_to_cart');
-    assert.strictEqual(segmentEvent.functionName, 'anonymous-callback-0');
+    assert.strictEqual(segmentEvent.functionName, 'useCallback(handleAddToCart)');
     assert.strictEqual(segmentEvent.line, 27);
     assert.deepStrictEqual(segmentEvent.properties, {
       product_id: { type: 'string' },
@@ -517,7 +517,7 @@ test.describe('analyzeTsFile', () => {
     const amplitudeEvent = events.find(e => e.source === 'amplitude');
     assert.ok(amplitudeEvent);
     assert.strictEqual(amplitudeEvent.eventName, 'item_added');
-    assert.strictEqual(amplitudeEvent.functionName, 'anonymous-callback-0');
+    assert.strictEqual(amplitudeEvent.functionName, 'useCallback(handleAddToCart)');
     assert.strictEqual(amplitudeEvent.line, 34);
     assert.deepStrictEqual(amplitudeEvent.properties, {
       item_details: {

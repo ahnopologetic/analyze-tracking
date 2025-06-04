@@ -8,6 +8,8 @@ const git = require('isomorphic-git');
 const { getAllFiles } = require('../src/utils/fileProcessor');
 const { getRepoDetails } = require('../src/utils/repoDetails');
 const { generateYamlSchema } = require('../src/utils/yamlGenerator');
+const { findWrappingFunction } = require('../src/analyze/typescript/utils/function-finder');
+const ts = require('typescript');
 
 test.describe('fileProcessor', () => {
   const tempDir = path.join(__dirname, 'temp-fileprocessor');
@@ -356,5 +358,69 @@ test.describe('yamlGenerator', () => {
       assert.ok(parsed.events['user:action']);
       assert.ok(parsed.events['user:action'].properties['special-key']);
     });
+  });
+});
+
+test.describe('typescript/function-finder', () => {
+  function getArrowFunctionNodeFromCode(code) {
+    const sourceFile = ts.createSourceFile('test.ts', code, ts.ScriptTarget.Latest, true);
+    let found = null;
+    function visit(node) {
+      if (ts.isArrowFunction(node)) {
+        found = node;
+      }
+      ts.forEachChild(node, visit);
+    }
+    visit(sourceFile);
+    return found;
+  }
+
+  test('should detect useCallback wrapper (assigned)', () => {
+    const code = 'const cb = useCallback(() => {}, []);';
+    const node = getArrowFunctionNodeFromCode(code);
+    const name = findWrappingFunction(node);
+    assert.strictEqual(name, 'useCallback(cb)');
+  });
+
+  test('should detect useCallback wrapper (direct)', () => {
+    const code = 'useCallback(() => {}, []);';
+    const node = getArrowFunctionNodeFromCode(code);
+    const name = findWrappingFunction(node);
+    assert.strictEqual(name, 'useCallback()');
+  });
+
+  test('should detect useEffect wrapper (assigned)', () => {
+    const code = 'const eff = useEffect(() => {}, []);';
+    const node = getArrowFunctionNodeFromCode(code);
+    const name = findWrappingFunction(node);
+    assert.strictEqual(name, 'useEffect(eff)');
+  });
+
+  test('should detect useEffect wrapper (direct)', () => {
+    const code = 'useEffect(() => {}, []);';
+    const node = getArrowFunctionNodeFromCode(code);
+    const name = findWrappingFunction(node);
+    assert.strictEqual(name, 'useEffect()');
+  });
+
+  test('should detect useMemo wrapper (assigned)', () => {
+    const code = 'const memo = useMemo(() => 42, []);';
+    const node = getArrowFunctionNodeFromCode(code);
+    const name = findWrappingFunction(node);
+    assert.strictEqual(name, 'useMemo(memo)');
+  });
+
+  test('should detect useMemo wrapper (direct)', () => {
+    const code = 'useMemo(() => 42, []);';
+    const node = getArrowFunctionNodeFromCode(code);
+    const name = findWrappingFunction(node);
+    assert.strictEqual(name, 'useMemo()');
+  });
+
+  test('should fallback to variable name if not a hook', () => {
+    const code = 'const notHook = () => {};';
+    const node = getArrowFunctionNodeFromCode(code);
+    const name = findWrappingFunction(node);
+    assert.strictEqual(name, 'notHook');
   });
 });

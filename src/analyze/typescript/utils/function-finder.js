@@ -5,6 +5,16 @@
 
 const ts = require('typescript');
 
+const REACT_HOOKS = new Set([
+  'useCallback',
+  'useEffect',
+  'useMemo',
+  'useLayoutEffect',
+  'useReducer',
+  'useState',
+  // Add more React hooks as needed
+]);
+
 /**
  * Finds the name of the function that wraps a given node
  * @param {Object} node - The TypeScript AST node to find the wrapper for
@@ -70,16 +80,31 @@ function findParentFunctionName(node) {
   
   if (!parent) return null;
   
+  if (
+    ts.isCallExpression(parent) &&
+    ts.isIdentifier(parent.expression) &&
+    REACT_HOOKS.has(parent.expression.escapedText)
+  ) {
+    if (
+      parent.parent &&
+      ts.isVariableDeclaration(parent.parent) &&
+      parent.parent.name
+    ) {
+      return `${parent.expression.escapedText}(${parent.parent.name.escapedText})`;
+    }
+    return `${parent.expression.escapedText}()`;
+  }
+  
   // Variable declaration: const myFunc = () => {}
   if (ts.isVariableDeclaration(parent) && parent.name) {
-    // Check if initializer is a useCallback call
+    // Check if initializer is a recognized React hook call
     if (
       parent.initializer &&
       ts.isCallExpression(parent.initializer) &&
       ts.isIdentifier(parent.initializer.expression) &&
-      parent.initializer.expression.escapedText === 'useCallback'
+      REACT_HOOKS.has(parent.initializer.expression.escapedText)
     ) {
-      return `useCallback(${parent.name.escapedText})`;
+      return `${parent.initializer.expression.escapedText}(${parent.name.escapedText})`;
     }
     return parent.name.escapedText;
   }
