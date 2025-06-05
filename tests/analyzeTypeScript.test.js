@@ -488,7 +488,7 @@ test.describe('analyzeTsFile', () => {
     // Sort events by line number for consistent ordering
     events.sort((a, b) => a.line - b.line);
 
-    assert.strictEqual(events.length, 8);
+    assert.strictEqual(events.length, 7);
 
     // Test PostHog event
     const posthogEvent = events.find(e => e.source === 'posthog');
@@ -593,6 +593,22 @@ test.describe('analyzeTsFile', () => {
         }
       },
       checkout_step: { type: 'number' }
+    });
+  });
+
+  test('should correctly analyze React TypeScript file with custom function', () => {
+    const reactFilePath = path.join(fixturesDir, 'typescript-react', 'main.tsx');
+    const program = createProgram(reactFilePath);
+    const events = analyzeTsFile(reactFilePath, program, 'tracker.track');
+
+    console.log({ events });
+    const trackEvent = events.find(e => e.source === 'custom');
+
+    assert.strictEqual(trackEvent.eventName, 'cart_update');
+    assert.strictEqual(trackEvent.functionName, 'trackCartUpdate');
+    assert.strictEqual(trackEvent.line, 81);
+    assert.deepStrictEqual(trackEvent.properties, {
+      cart_size: { type: 'number' }
     });
   });
 });

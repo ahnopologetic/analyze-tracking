@@ -78,15 +78,10 @@ export const ShoppingCart: React.FC<CartProps> = ({ products }) => {
 
     // Tracking with custom event builder
     const trackCartUpdate = () => {
-        const event = buildStructEvent({
-            category: 'Cart',
-            action: 'Update',
-            label: 'Cart Contents Modified',
-            property: 'cart_size',
-            value: cartItems.length
+        tracker.track('cart_update', {
+            cart_size: cartItems.length
         });
-        tracker.track(event);
-    };
+    }
 
     return (
         <div className="shopping-cart">
@@ -95,7 +90,10 @@ export const ShoppingCart: React.FC<CartProps> = ({ products }) => {
             {products.map(product => (
                 <div key={product.id} className="product-item">
                     <span>{product.name} - ${product.price}</span>
-                    <button onClick={() => handleAddToCart(product)}>Add to Cart</button>
+                    <button onClick={() => {
+                        handleAddToCart(product);
+                        trackCartUpdate();
+                    }}>Add to Cart</button>
                 </div>
             ))}
 
